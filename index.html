@@ -323,10 +323,9 @@
         const audioBuffers = {};
         let currentAudio = new Audio(); 
 
+        // >>> DEĞİŞİKLİK: 'instruction' satırı kaldırıldı <<<
         const soundUrls = {
-            // DİKKAT: 'yonerge_3.mp3' dosyasının 'index.html' ile aynı klasörde olması
-            // ve 'Live Server' ile çalıştırılması gerekir.
-            instruction: 'yonerge_3.mp3' 
+            // 'instruction' sesi kaldırıldı.
         };
         
         // Oyun Verisi
@@ -484,6 +483,7 @@
             promises.push(createTone('click', 1500, 0.05, 'sine')); 
 
             // 2. Harici (ve 'Live Server' gerektiren) sesler
+            // 'soundUrls' artık boş olduğu için bu döngü çalışmayacak (bu istenen bir durum)
             for (const [key, url] of Object.entries(soundUrls)) {
                 promises.push(loadAudio(key, url));
             }
@@ -527,26 +527,20 @@
             toggleAudio();
         }
 
-        function playInstructionAndStart() {
+        // >>> DEĞİŞİKLİK: 'playInstructionAndStart' fonksiyonu SİLİNDİ <<<
+        
+        // >>> DEĞİŞİKLİK: 'startButton' tıklandığında sesi çalmak yerine
+        // doğrudan "Hazır mısın?" ekranını gösteren yeni fonksiyon eklendi.
+        function showReadyPrompt() {
             if (audioContext.state === 'suspended') {
                 audioContext.resume();
             }
             startButton.style.display = 'none';
-
-            const onInstructionEnd = () => {
-                if (countdownDisplay) countdownDisplay.style.display = 'none';
-                if (playerSelectPrompt) playerSelectPrompt.style.display = 'flex';
-                if (overlay) overlay.classList.remove('transparent-bg');
-            };
-
-            const audioSource = playSound('instruction', onInstructionEnd);
-            // Eğer 'instruction' sesi (yonerge_3.mp3) bulunamazsa veya yüklenemezse,
-            // oyunun kilitlenmemesi için 1 saniye sonra devam et.
-            if (!audioSource && audioBuffers['instruction'] === undefined) {
-                 console.warn("Yönerge sesi 'instruction' bulunamadı veya yüklenemedi. Devam ediliyor...");
-                 setTimeout(onInstructionEnd, 1000);
-            }
+            if (countdownDisplay) countdownDisplay.style.display = 'none';
+            if (playerSelectPrompt) playerSelectPrompt.style.display = 'flex';
+            if (overlay) overlay.classList.remove('transparent-bg');
         }
+
 
         function startCountdownAndGame() {
             if (audioContext.state === 'suspended') {
@@ -861,7 +855,8 @@
         }
 
         // Event Listeners
-        startButton.addEventListener('click', playInstructionAndStart);
+        // >>> DEĞİŞİKLİK: Event listener, yeni 'showReadyPrompt' fonksiyonunu çağıracak şekilde güncellendi <<<
+        startButton.addEventListener('click', showReadyPrompt);
         startCountdownButton.addEventListener('click', startCountdownAndGame);
         resetButton.addEventListener('click', resetForNewGame);
         audioButton.addEventListener('click', toggleAudio);
