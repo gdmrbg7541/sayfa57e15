@@ -313,8 +313,6 @@
             <div class="progress-dot"></div>
             <div class="progress-dot"></div>
             <div class="progress-dot"></div>
-            <div class="progress-dot"></div>
-            <div class="progress-dot"></div>
         </div>
 
         <div id="game-header">
@@ -368,7 +366,7 @@
             <div id="winner-display"></div>
 
             <div id="player-select-prompt">
-                <div id="player-select-text">هَلْ أَنْتَ مُسْتَعِدّ؟</div>
+                <div id="player-select-text">هَلْ أَنْت مُسْتَعِدّ؟</div>
                 <button id="start-countdown-button">▶️</button>
             </div>
             <button class="overlay-button" id="start-button">اِبْدَأْ</button>
@@ -415,7 +413,7 @@
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const audioBuffers = {};
 
-        // 2. new Audio() (Görsel sesleri v1, v2... için)
+        // 2. new Audio() (Görsel sesleri s1, s2... için)
         let currentAudio = new Audio(); 
 
         // 3. Web Audio API ile yüklenecek seslerin listesi
@@ -428,24 +426,21 @@
         
         // >>> HİBRİT MODEL SONU <<<
 
-
         const gameData = [
-            { id: 1, image: "img1.png", audio: "v1.mp3" },
-            { id: 2, image: "img2.png", audio: "v2.mp3" },
-            { id: 3, image: "img3.png", audio: "v3.mp3" },
-            { id: 4, image: "img4.png", audio: "v4.mp3" },
-            { id: 5, image: "img5.png", audio: "v5.mp3" },
-            { id: 6, image: "img6.png", audio: "v6.mp3" },
-            { id: 7, image: "img7.png", audio: "v7.mp3" },
-            { id: 8, image: "img8.png", audio: "v8.mp3" },
-            { id: 9, image: "img9.png", audio: "v9.mp3" },
-            { id: 10, image: "img10.png", audio: "v10.mp3" }
+            { id: 1, image: "1.png", audio: "s1.wav" },
+            { id: 2, image: "2.png", audio: "s2.wav" },
+            { id: 3, image: "3.png", audio: "s3.wav" },
+            { id: 4, image: "4.png", audio: "s4.wav" },
+            { id: 5, image: "5.png", audio: "s5.wav" },
+            { id: 6, image: "6.png", audio: "s6.wav" },
+            { id: 7, image: "7.png", audio: "s7.wav" },
+            { id: 8, image: "8.png", audio: "s8.wav" }
         ];
 
         let state = {
             scores: { player1: 0 },
             currentRound: 0,
-            totalRounds: 10, 
+            totalRounds: 8, 
             questions: [],
             isAnswered: false,
             answers: { player1: null },
@@ -609,37 +604,40 @@
             const correctId = currentQuestion.id;
 
             // ... (Distractor logic)
-            const conflictGroup1 = [1, 4, 5, 6];
-            const conflictGroup2 = [7, 8];
-            const conflictGroup3 = [2, 3, 10];
-            let possibleDistractors = gameData.filter(item => {
-                const id = item.id;
-                if (id === correctId) return false;
-                if (conflictGroup1.includes(correctId) && conflictGroup1.includes(id)) return false;
-                if (conflictGroup2.includes(correctId) && conflictGroup2.includes(id)) return false;
-                if (conflictGroup3.includes(correctId) && conflictGroup3.includes(id)) return false;
+            // >>> DEĞİŞİKLİK: Yeni çeldirici kuralı (1. görsel; 2,3,4 ile gelmesin) <<<
+            const conflictGroupA = [1];
+            const conflictGroupB = [2, 3, 4];
+
+            let bannedDistractorIds = []; // Çeldirici olarak KULLANILAMAYACAK ID'ler
+
+            if (conflictGroupA.includes(correctId)) {
+                // Eğer doğru cevap '1' ise, '2, 3, 4' çeldirici olamaz.
+                bannedDistractorIds = conflictGroupB;
+            } else if (conflictGroupB.includes(correctId)) {
+                // Eğer doğru cevap '2', '3' veya '4' ise, '1' çeldirici olamaz.
+                bannedDistractorIds = conflictGroupA;
+            }
+
+            // 'possibleDistractors' listesini oluştur
+            const possibleDistractors = gameData.filter(item => {
+                // 1. Kendisi olamaz (doğru cevap)
+                if (item.id === correctId) return false;
+                
+                // 2. Yeni kurala göre yasaklı listeyse olamaz
+                if (bannedDistractorIds.includes(item.id)) return false;
+                
+                // Diğerleri olabilir
                 return true;
             });
+
+            // Kalanları karıştır
             const shuffledDistractors = shuffleArray(possibleDistractors);
-            const finalDistractors = [];
-            for (const d of shuffledDistractors) {
-                if (finalDistractors.length >= 3) break;
-                const dId = d.id;
-                const currentIds = [correctId, ...finalDistractors.map(x => x.id)];
-                let conflict = false;
-                if (conflictGroup1.includes(dId) && currentIds.some(id => conflictGroup1.includes(id))) conflict = true;
-                if (!conflict && conflictGroup2.includes(dId) && currentIds.some(id => conflictGroup2.includes(id))) conflict = true;
-                if (!conflict && conflictGroup3.includes(dId) && currentIds.some(id => conflictGroup3.includes(id))) conflict = true;
-                if (!conflict) finalDistractors.push(d);
-            }
-            if (finalDistractors.length < 3) {
-                const remaining = gameData.filter(item => item.id !== correctId && !finalDistractors.map(d => d.id).includes(item.id));
-                const sr = shuffleArray(remaining);
-                for (let i = 0; finalDistractors.length < 3 && i < sr.length; i++) finalDistractors.push(sr[i]);
-            }
+            
+            // İlk 3 tanesini çeldirici olarak al
+            const finalDistractors = shuffledDistractors.slice(0, 3);
             // ... (Distractor logic sonu)
 
-            const options = shuffleArray([currentQuestion, ...finalDistractors.slice(0, 3)]);
+            const options = shuffleArray([currentQuestion, ...finalDistractors]);
             const optionsP1 = [...options];
 
             document.querySelectorAll('#image-grid-1 .image-container').forEach((c, i) => {
@@ -713,7 +711,7 @@
             }
         }
 
-        // >>> DEĞİŞİKLİK: GÖRSEL SESLERİ (v1, v2...) İÇİN ESKİ 'new Audio()' MANTIĞINA DÖNÜLDÜ <<<
+        // >>> DEĞİŞİKLİK: GÖRSEL SESLERİ (s1, s2...) İÇİN ESKİ 'new Audio()' MANTIĞINA DÖNÜLDÜ <<<
         function startAudioLoop(isInitialCall) {
             if (state.isMatchOver || state.isAnswered || !audioButton.classList.contains('round-active') || state.currentRound > state.totalRounds || !state.questions[state.currentRound - 1]) return;
 
@@ -748,7 +746,7 @@
             currentAudio.play().catch(() => {});
         }
 
-        // >>> DEĞİŞİKLİK: GÖRSEL SESLERİ (v1, v2...) İÇİN ESKİ 'new Audio()' MANTIĞINA DÖNÜLDÜ <<<
+        // >>> DEĞİŞİKLİK: GÖRSEL SESLERİ (s1, s2...) İÇİN ESKİ 'new Audio()' MANTIĞINA DÖNÜLDÜ <<<
         function stopAudioLoop() {
             clearTimeout(state.audioInterval);
             
@@ -828,8 +826,9 @@
             let anyCorrect = false;
 
             if (p1Correct) {
-                state.scores.player1 += 10;
-                if (p1Choice) animateScoreBox(p1Choice, 'player1', 10);
+                // Puan 12.5
+                state.scores.player1 += 12.5;
+                if (p1Choice) animateScoreBox(p1Choice, 'player1', 12.5);
                 anyCorrect = true;
                 if (currentDot) currentDot.classList.add('correct'); 
             } else { 
