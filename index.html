@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>اِسْتَمِعْ إِلى الصَّوْت</title>
     <style>
-        /* CSS KISMINDAN HİÇBİR DEĞİŞİKLİK YAPILMADI */
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700&family=Noto+Naskh+Arabic:wght@700&display=swap');
 
         :root {
@@ -26,7 +25,6 @@
             display: flex; justify-content: center; align-items: center;
             height: 100dvh; background-color: var(--neutral-bg); overflow: hidden; direction: ltr;
         }
-
         #loading-indicator {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(255, 255, 255, 0.95);
@@ -35,9 +33,7 @@
             z-index: 200; opacity: 1; transition: opacity 0.5s ease-out;
         }
         #loading-indicator.hidden { opacity: 0; pointer-events: none; }
-
         #game-container { display: flex; width: 100%; height: 100%; position: relative; }
-
         #progress-bar { 
             position: absolute; top: 0; left: 0; width: 100%; 
             display: flex; gap: 0; justify-content: center; align-items: center; 
@@ -53,7 +49,6 @@
             border-left: 1px solid #f4f4f4; 
         }
         .progress-dot:first-child { border-left: none; }
-
         .progress-dot.correct { background-color: var(--correct-color); }
         .progress-dot.incorrect { background-color: var(--incorrect-color); }
         
@@ -66,50 +61,20 @@
         #game-header.visible { opacity: 1; transform: translateY(0); }
         #game-header h1 { font-family: 'Noto Naskh Arabic', serif; font-size: 2.8rem; margin: 0; color: var(--dark-text); }
 
-
         .player-section {
-            flex: 1; 
-            padding: 180px 5px 120px 5px; 
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; 
-            transition: background-color 0.3s; height: 100%; overflow-y: auto; position: relative;
+            flex: 1;
+            padding: 160px 5px 120px 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            transition: background-color: 0.3s;
+            height: 100%;
+            overflow-y: auto;
+            position: relative;
         }
         #player1-section { background-color: rgba(74, 144, 226, 0.1); }
         
-        #player2-section { 
-            display: none; 
-            background-color: rgba(226, 74, 74, 0.1); 
-        }
-
-        .hud { 
-            position: absolute;
-            right: 20px;
-            z-index: 55; 
-            text-align: right; 
-            margin-top: 0; 
-            margin-bottom: 0;
-            opacity: 0; 
-            top: 75px; 
-            transform: translateY(-50%) scale(0.8); 
-            transition: opacity 0.6s ease, transform 0.6s ease; 
-        }
-        .hud.visible { opacity: 1; transform: translateY(-50%) scale(1); }
-
-        #player2-section .player-icon svg { fill: var(--player2-bg); }
-
-        .player-score {
-            display: inline-block;
-            min-width: 96px;
-            padding: 6px 16px;
-            border: 3px solid rgba(0,0,0,0.08);
-            background: #fff;
-            border-radius: 12px;
-            font-size: 3.0rem;
-            font-weight: bold;
-            color: var(--dark-text);
-            line-height: 1.1;
-        }
-
         #center-controls {
             position: absolute; 
             bottom: 20px; 
@@ -124,10 +89,8 @@
             opacity: 0; transition: opacity 0.6s ease, transform 0.6s ease;
         }
         #center-controls.visible { opacity: 1; transform: none; }
-
         #round-timer-bar-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 12px; background-color: #ccc; z-index: 51; display: none; }
         #round-timer-bar { width: 100%; height: 100%; background-color: var(--incorrect-color); transform: scaleX(1); transform-origin: left; }
-
         @keyframes deplete-linear { 0% { transform: scaleX(1); } 100% { transform: scaleX(0); } }
 
         #audio-button {
@@ -171,16 +134,30 @@
             height: 80px;
             border-radius: 50%;
             padding: 0;
-            font-size: 2.5rem; 
-            font-weight: bold; cursor: pointer; border: none; 
-            background-color: var(--correct-color); color: var(--dark-text); box-shadow: 0 5px 15px rgba(0,0,0,0.15); transition: transform 0.2s; z-index: 11; 
-            display: none; 
+            cursor: pointer; 
+            border: 5px solid #ccc; 
+            background-color: white; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+            transition: all 0.2s; 
+            z-index: 11; 
+            display: flex; 
             justify-content: center;
             align-items: center;
-            line-height: 1; 
         }
         #next-round-button:hover { transform: scale(1.05); }
 
+        #next-round-button .icon {
+            width: 35px; 
+            height: 35px; 
+            fill: #333; 
+            z-index: 13;
+        }
+
+        #next-round-button:disabled { 
+            cursor: not-allowed; 
+            opacity: 0.5; 
+        }
+        
         .image-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; 
             max-width: 840px; 
@@ -227,52 +204,16 @@
 
         @keyframes zoom-fade { 0% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.8); opacity: 0.5; } }
 
-        .score-burst {
-            position: absolute; z-index: 205; pointer-events: none;
-            font-size: 2.2rem; font-weight: 800; color: #1b3350; background: #ffffff;
-            border: 2px solid rgba(0,0,0,0.08); border-radius: 14px; padding: 8px 14px;
-            box-shadow: 0 10px 24px rgba(0,0,0,0.12); opacity: 1;
-        }
-
-        .speed-bonus-burst {
-            position: absolute; z-index: 210; pointer-events: none;
-            display: inline-flex; align-items: center; gap: 10px;
-            font-size: 2.2rem; font-weight: 900; color: #000; background: var(--bonus-yellow);
-            border: 2px solid rgba(0,0,0,0.08); border-radius: 16px; padding: 10px 16px;
-            box-shadow: 0 12px 28px rgba(0,0,0,0.14); opacity: 1;
-        }
-        .speed-bonus-burst .lightning {
-            font-size: 2.8rem; line-height: 1;
-            filter: drop-shadow(0 0 6px rgba(255,215,0,0.85));
-            text-shadow: 0 0 2px #000, 0 0 8px rgba(255,215,0,0.85), 0 0 14px rgba(255,215,0,0.65);
-        }
-
-        .celebration-animation { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10rem; z-index: 90; opacity: 0; pointer-events: none; }
-        .celebration-animation.show { animation: fade-burst-out 3s ease-out forwards; }
-        @keyframes fade-burst-out {
-            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.2); }
-            50% { opacity: 1; }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
-        }
 
         @media (max-width: 768px) {
             #progress-bar { height: 20px; }
             #game-header { top: 20px; }
-
             #center-controls { bottom: 20px; right: 20px; }
             #audio-button { width: 70px; height: 70px; }
             #next-round-button { width: 70px; height: 70px; }
-            
-            .player-section { padding: 150px 5px 110px 5px; } 
-            
-            .hud { 
-                top: 55px; 
-                right: 15px; 
-            } 
+            .player-section { padding: 140px 5px 110px 5px; } 
             .image-grid { gap: 5px; max-width: 100%; }
-            .player-score { font-size: 1.8rem; }
             #game-header h1 { font-size: 2.0rem; } 
-
             .progress-dot { border-radius: 0; }
             #winner-display { font-size: 2.2rem; }
             #player-select-text { font-size: 2.5rem; }
@@ -281,19 +222,12 @@
         @media (max-width: 480px) {
             #progress-bar { height: 15px; }
             #game-header { top: 15px; }
-
-            .player-section { padding: 140px 5px 100px 5px; } 
-            
-            .hud { 
-                top: 48px; 
-                right: 10px; 
-            } 
-
+            .player-section { padding: 130px 5px 100px 5px; } 
             #center-controls { bottom: 10px; right: 10px; gap: 5px;}
             #audio-button { width: 60px; height: 60px; }
             #audio-button .icon { width: 30px; height: 30px; }
-            #next-round-button { width: 60px; height: 60px; font-size: 2rem; }
-
+            #next-round-button { width: 60px; height: 60px; }
+            #next-round-button .icon { width: 30px; height: 30px; }
             #game-header h1 { font-size: 1.8rem; } 
             .progress-dot { border-radius: 0; }
         }
@@ -319,10 +253,6 @@
             <h1>اِسْتَمِعْ إِلى الصَّوْت، وَاخْتَر الصّورَة المُناسِبَة</h1>
         </div>
 
-        <div class="hud">
-            <div class="player-score" id="score1">0</div>
-        </div>
-
         <div class="player-section" id="player1-section">
             <div class="image-grid" id="image-grid-1">
                 <div class="image-container"></div>
@@ -330,23 +260,6 @@
                 <div class="image-container"></div>
                 <div class="image-container"></div>
             </div>
-            <div class="celebration-animation" id="celebration-p1">🎉</div>
-        </div>
-
-        <div class="player-section" id="player2-section">
-            <div class="hud">
-                 <div class="player-icon">
-                     <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                 </div>
-                <div class="player-score" id="score2">0</div>
-            </div>
-            <div class="image-grid" id="image-grid-2">
-                <div class="image-container"></div>
-                <div class="image-container"></div>
-                <div class="image-container"></div>
-                <div class="image-container"></div>
-            </div>
-            <div class="celebration-animation" id="celebration-p2">🎉</div>
         </div>
 
         <div id="center-controls">
@@ -354,7 +267,10 @@
                 <svg class="icon play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
                 <svg class="icon stop-icon" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"></path></svg>
             </button>
-            <button id="next-round-button">»</button>
+
+            <button id="next-round-button" disabled>
+                <svg class="icon" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path></svg>
+            </button>
         </div>
 
         <div id="round-timer-bar-container">
@@ -366,7 +282,7 @@
             <div id="winner-display"></div>
 
             <div id="player-select-prompt">
-                <div id="player-select-text">هَلْ أَنْت مُسْتَعِدّ؟</div>
+                <div id="player-select-text">هَلْ أَنْتَ مُسْتَعِدّ؟</div>
                 <button id="start-countdown-button">▶️</button>
             </div>
             <button class="overlay-button" id="start-button">اِبْدَأْ</button>
@@ -375,6 +291,7 @@
     </div>
 
     <script>
+        // DOM Elementlerini seçme
         const loadingIndicator = document.getElementById('loading-indicator');
         const startButton = document.getElementById('start-button');
         const overlay = document.getElementById('overlay');
@@ -391,41 +308,28 @@
 
         const gameHeader = document.getElementById('game-header');
         const centerControls = document.getElementById('center-controls');
-        const allHuds = document.querySelectorAll('.hud');
-        const allGrids = document.querySelectorAll('#image-grid-1'); 
+        
+        const allGrids = document.getElementById('image-grid-1'); 
         const grid1 = document.getElementById('image-grid-1');
 
-        const allImageContainers = document.querySelectorAll('.image-container');
-
-        const score1Display = document.getElementById('score1');
+        const allImageContainers = document.querySelectorAll('#image-grid-1 .image-container');
         const gameContainer = document.getElementById('game-container');
-
-        const celebrationP1 = document.getElementById('celebration-p1');
-
         const winnerDisplay = document.getElementById('winner-display');
-
         const playerSelectPrompt = document.getElementById('player-select-prompt');
         const startCountdownButton = document.getElementById('start-countdown-button');
 
-        // >>> DEĞİŞİKLİK: HİBRİT MODEL BAŞLANGICI <<<
-        
-        // 1. Web Audio API (Doğru, Yanlış, Tıklama, Yönerge sesleri için)
+        // Audio Ayarları
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const audioBuffers = {};
-
-        // 2. new Audio() (Görsel sesleri s1, s2... için)
         let currentAudio = new Audio(); 
 
-        // 3. Web Audio API ile yüklenecek seslerin listesi
         const soundUrls = {
-            correct: 'https://www.myinstants.com/media/sounds/correct.mp3',
-            incorrect: 'https://www.myinstants.com/media/sounds/error_CDOxCYm.mp3',
-            click: 'https://www.myinstants.com/media/sounds/mouse-click-sound-effect-hd.mp3',
-            instruction: 'yonerge_3.mp3' // Live Server gerektirir!
+            // DİKKAT: 'yonerge_3.mp3' dosyasının 'index.html' ile aynı klasörde olması
+            // ve 'Live Server' ile çalıştırılması gerekir.
+            instruction: 'yonerge_3.mp3' 
         };
         
-        // >>> HİBRİT MODEL SONU <<<
-
+        // Oyun Verisi
         const gameData = [
             { id: 1, image: "1.png", audio: "s1.wav" },
             { id: 2, image: "2.png", audio: "s2.wav" },
@@ -437,8 +341,8 @@
             { id: 8, image: "8.png", audio: "s8.wav" }
         ];
 
+        // Oyun Durumu (State)
         let state = {
-            scores: { player1: 0 },
             currentRound: 0,
             totalRounds: 8, 
             questions: [],
@@ -451,6 +355,8 @@
             roundTimerStartTime: null,
             roundTimerRemaining: 0
         };
+
+        // --- ÖN YÜKLEME FONKSİYONLARI ---
 
         function preloadImages() {
             return new Promise((resolve) => {
@@ -465,13 +371,16 @@
             });
         }
 
-        // >>> DEĞİŞİKLİK: Web Audio API için ses YÜKLEYİCİ <<<
         async function loadAudio(key, url) {
+            // 'file://' hatasını önlemek için AudioContext'in hazır olduğundan emin ol
             if (audioContext.state === 'suspended') {
-                audioContext.resume();
+                await audioContext.resume();
             }
             try {
                 const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status} for ${url}`);
+                }
                 const arrayBuffer = await response.arrayBuffer();
                 const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
                 audioBuffers[key] = audioBuffer;
@@ -480,18 +389,33 @@
             }
         }
 
-        // >>> DEĞİŞİKLİK: Web Audio API için ses OYNATICI <<<
         function playSound(key, onEndedCallback = null) {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume(); 
+            }
+
             if (!audioBuffers[key]) {
                 console.warn(`Ses buffer'ı bulunamadı: ${key}`);
                 if (onEndedCallback) onEndedCallback();
                 return null;
             }
+
             if (audioContext.state !== 'running') {
                 console.warn(`AudioContext çalışmıyor. Kullanıcı etkileşimi bekleniyor.`);
-                // Kullanıcı tıkladığında context'i 'resume' etmek için playInstructionAndStart'a güveniyoruz
-                if (onEndedCallback) onEndedCallback();
-                return null;
+                 audioContext.resume().then(() => {
+                    if (audioBuffers[key]) {
+                         const sourceRetry = audioContext.createBufferSource();
+                        sourceRetry.buffer = audioBuffers[key];
+                        sourceRetry.connect(audioContext.destination);
+                        if (onEndedCallback) sourceRetry.onended = onEndedCallback;
+                        sourceRetry.start(0);
+                        return sourceRetry;
+                    }
+                 }).catch(e => {
+                    console.warn(`AudioContext başlatılamadı:`, e);
+                    if (onEndedCallback) onEndedCallback();
+                 });
+                return null; 
             }
             
             const source = audioContext.createBufferSource();
@@ -505,16 +429,66 @@
             return source;
         }
 
-        // >>> DEĞİŞİKLİK: HİBRİT preloadAudio fonksiyonu <<<
+        function createTone(key, frequency, duration, type = 'sine') {
+            return new Promise(async (resolve) => {
+                if (audioContext.state === 'suspended') {
+                    try {
+                        await audioContext.resume();
+                    } catch (e) {
+                        console.warn(`AudioContext ${key} için devam ettirilemedi:`, e);
+                        resolve(); 
+                        return;
+                    }
+                }
+                
+                const sampleRate = audioContext.sampleRate;
+                const frameCount = Math.floor(sampleRate * duration);
+                const buffer = audioContext.createBuffer(1, frameCount, sampleRate);
+                const data = buffer.getChannelData(0); 
+
+                let angle = 0;
+                const angleIncrement = (2 * Math.PI * frequency) / sampleRate;
+
+                for (let i = 0; i < frameCount; i++) {
+                    let sample;
+                    
+                    if (type === 'square') {
+                         sample = Math.sin(angle) >= 0 ? 0.3 : -0.3; 
+                    } else if (type === 'sawtooth') {
+                        sample = (((angle / Math.PI) - 1) / 2) * 0.3;
+                        if (angle > Math.PI) angle -= 2 * Math.PI;
+                    } else {
+                        sample = Math.sin(angle) * 0.5; 
+                    }
+                    
+                    angle += angleIncrement;
+                    if (angle > 2 * Math.PI) angle -= 2 * Math.PI;
+
+                    const envelope = Math.pow(1.0 - (i / frameCount), 4); 
+                    
+                    data[i] = sample * envelope; 
+                }
+                
+                audioBuffers[key] = buffer;
+                resolve();
+            });
+        }
+
+
         function preloadAudio() {
             const promises = [];
 
-            // 1. Web Audio API seslerini (UI sesleri) yükle
+            // 1. Sinüs dalgası olarak üretilen sesler
+            promises.push(createTone('correct', 880, 0.3, 'sine')); 
+            promises.push(createTone('incorrect', 220, 0.5, 'sine'));
+            promises.push(createTone('click', 1500, 0.05, 'sine')); 
+
+            // 2. Harici (ve 'Live Server' gerektiren) sesler
             for (const [key, url] of Object.entries(soundUrls)) {
                 promises.push(loadAudio(key, url));
             }
 
-            // 2. 'new Audio' seslerini (görsel sesleri) tarayıcı önbelleğine yükle
+            // 3. 'new Audio' (Görsel) seslerini önbelleğe yükle
             const gameAudioPromise = new Promise((resolve) => {
                 let loadedCount = 0;
                 const totalAudio = gameData.length;
@@ -529,7 +503,7 @@
                     const audio = new Audio();
                     audio.src = item.audio;
                     audio.addEventListener('canplaythrough', onAudioLoad, { once: true });
-                    audio.addEventListener('error', onAudioLoad, { once: true }); // Hata olsa da yüklemeyi bitir
+                    audio.addEventListener('error', onAudioLoad, { once: true }); 
                 });
             });
             promises.push(gameAudioPromise);
@@ -537,6 +511,7 @@
             return Promise.all(promises);
         }
 
+        // --- OYUN AKIŞI FONKSİYONLARI ---
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -552,26 +527,27 @@
             toggleAudio();
         }
 
-        // >>> DEĞİŞİKLİK: Yönerge sesini Web Audio API ile çal <<<
         function playInstructionAndStart() {
-            // Tıklama ile AudioContext'i başlat (gerekliyse)
             if (audioContext.state === 'suspended') {
                 audioContext.resume();
             }
             startButton.style.display = 'none';
 
-            // Yönerge bittiğinde
             const onInstructionEnd = () => {
-                countdownDisplay.style.display = 'none';
-                playerSelectPrompt.style.display = 'flex';
-                overlay.classList.remove('transparent-bg');
+                if (countdownDisplay) countdownDisplay.style.display = 'none';
+                if (playerSelectPrompt) playerSelectPrompt.style.display = 'flex';
+                if (overlay) overlay.classList.remove('transparent-bg');
             };
 
-            // Yönerge sesini çal, bittiğinde onInstructionEnd'i tetikle
-            playSound('instruction', onInstructionEnd);
+            const audioSource = playSound('instruction', onInstructionEnd);
+            // Eğer 'instruction' sesi (yonerge_3.mp3) bulunamazsa veya yüklenemezse,
+            // oyunun kilitlenmemesi için 1 saniye sonra devam et.
+            if (!audioSource && audioBuffers['instruction'] === undefined) {
+                 console.warn("Yönerge sesi 'instruction' bulunamadı veya yüklenemedi. Devam ediliyor...");
+                 setTimeout(onInstructionEnd, 1000);
+            }
         }
 
-        // >>> DEĞİŞİKLİK: AudioContext'i başlat (gerekliyse) <<<
         function startCountdownAndGame() {
             if (audioContext.state === 'suspended') {
                 audioContext.resume();
@@ -582,10 +558,8 @@
         }
 
         function startMatch() {
-            state.scores = { player1: 0 };
             state.currentRound = 0;
             state.isMatchOver = false;
-            updateScores();
 
             state.questions = shuffleArray([...gameData]).slice(0, state.totalRounds)
                 .map(item => ({ ...item, duration: 30000 }));
@@ -603,47 +577,30 @@
             const currentQuestion = state.questions[state.currentRound];
             const correctId = currentQuestion.id;
 
-            // ... (Distractor logic)
-            // >>> DEĞİŞİKLİK: Yeni çeldirici kuralı (1. görsel; 2,3,4 ile gelmesin) <<<
+            // (Distractor logic)
             const conflictGroupA = [1];
             const conflictGroupB = [2, 3, 4];
-
-            let bannedDistractorIds = []; // Çeldirici olarak KULLANILAMAYACAK ID'ler
-
+            let bannedDistractorIds = []; 
             if (conflictGroupA.includes(correctId)) {
-                // Eğer doğru cevap '1' ise, '2, 3, 4' çeldirici olamaz.
                 bannedDistractorIds = conflictGroupB;
             } else if (conflictGroupB.includes(correctId)) {
-                // Eğer doğru cevap '2', '3' veya '4' ise, '1' çeldirici olamaz.
                 bannedDistractorIds = conflictGroupA;
             }
-
-            // 'possibleDistractors' listesini oluştur
             const possibleDistractors = gameData.filter(item => {
-                // 1. Kendisi olamaz (doğru cevap)
                 if (item.id === correctId) return false;
-                
-                // 2. Yeni kurala göre yasaklı listeyse olamaz
                 if (bannedDistractorIds.includes(item.id)) return false;
-                
-                // Diğerleri olabilir
                 return true;
             });
-
-            // Kalanları karıştır
             const shuffledDistractors = shuffleArray(possibleDistractors);
-            
-            // İlk 3 tanesini çeldirici olarak al
             const finalDistractors = shuffledDistractors.slice(0, 3);
-            // ... (Distractor logic sonu)
+            // (Distractor logic sonu)
 
             const options = shuffleArray([currentQuestion, ...finalDistractors]);
-            const optionsP1 = [...options];
 
-            document.querySelectorAll('#image-grid-1 .image-container').forEach((c, i) => {
-                c.dataset.id = optionsP1[i].id;
+            allImageContainers.forEach((c, i) => {
+                c.dataset.id = options[i].id;
                 const img = document.createElement('img');
-                img.src = optionsP1[i].image; img.alt = "خيار";
+                img.src = options[i].image; img.alt = "خيار";
                 c.appendChild(img);
             });
             
@@ -659,7 +616,9 @@
             state.roundTimerRemaining = 0;
 
             clearTimeout(state.roundTimer);
-            stopAudioLoop(); // Bu artık 'new Audio()'yu durduracak
+            stopAudioLoop(); 
+
+            nextRoundButton.disabled = true;
 
             audioButton.classList.remove('round-active');
 
@@ -672,8 +631,6 @@
 
             grid1.classList.remove('locked');
 
-            celebrationP1.classList.remove('show');
-
             allImageContainers.forEach(container => {
                 container.classList.remove('correct', 'incorrect', 'locked', 'selected');
                 const img = container.querySelector('img');
@@ -681,10 +638,14 @@
             });
         }
 
+        // --- SES KONTROL FONKSİYONLARI ---
+
         function toggleAudio() {
             if (state.isMatchOver || state.isAnswered || state.currentRound > state.totalRounds || !state.questions[state.currentRound - 1]) return;
 
             if (!audioButton.classList.contains('round-active')) {
+                nextRoundButton.disabled = true;
+                
                 audioButton.classList.add('round-active', 'playing-sound', 'waiting');
 
                 const currentDuration = state.questions[state.currentRound - 1].duration;
@@ -700,18 +661,17 @@
                 setTimeout(() => {
                     if (state.isMatchOver || !audioButton.classList.contains('round-active') || state.isAnswered) return;
                     audioButton.classList.remove('waiting');
-                    startAudioLoop(true); // 'new Audio' döngüsünü başlat
+                    startAudioLoop(true); 
                 }, 2000);
             } else {
                 if (audioButton.classList.contains('playing-sound')) {
-                    stopAudioLoop(); // 'new Audio' döngüsünü durdur
+                    stopAudioLoop(); 
                 } else {
-                    startAudioLoop(false); // 'new Audio' döngüsünü başlat
+                    startAudioLoop(false); 
                 }
             }
         }
 
-        // >>> DEĞİŞİKLİK: GÖRSEL SESLERİ (s1, s2...) İÇİN ESKİ 'new Audio()' MANTIĞINA DÖNÜLDÜ <<<
         function startAudioLoop(isInitialCall) {
             if (state.isMatchOver || state.isAnswered || !audioButton.classList.contains('round-active') || state.currentRound > state.totalRounds || !state.questions[state.currentRound - 1]) return;
 
@@ -746,11 +706,9 @@
             currentAudio.play().catch(() => {});
         }
 
-        // >>> DEĞİŞİKLİK: GÖRSEL SESLERİ (s1, s2...) İÇİN ESKİ 'new Audio()' MANTIĞINA DÖNÜLDÜ <<<
         function stopAudioLoop() {
             clearTimeout(state.audioInterval);
             
-            // Çalan 'new Audio' sesini durdur
             if (!currentAudio.paused) {
                 currentAudio.pause();
             }
@@ -771,11 +729,12 @@
             stopIcon.style.display = 'none';
         }
 
-        document.querySelectorAll('.image-container').forEach(container => {
+        // --- CEVAPLAMA VE SONUÇ FONKSİYONLARI ---
+
+        document.querySelectorAll('#image-grid-1 .image-container').forEach(container => {
             container.addEventListener('click', handleAnswer);
         });
 
-        // >>> DEĞİŞİKLİK: Tıklama sesi Web Audio API ile çalınıyor <<<
         function handleAnswer(e) {
             const playerSection = e.currentTarget.closest('.player-section');
             
@@ -788,7 +747,7 @@
                 state.isMatchOver ||
                 state.isAnswered) return;
 
-            playSound('click'); // Web Audio API tıklama sesi
+            playSound('click'); // Web Audio API tıklama sesi (üretilen)
 
             const selectedContainer = e.currentTarget;
             const selectedId = parseInt(selectedContainer.dataset.id);
@@ -802,13 +761,12 @@
             state.isAnswered = true;
             clearTimeout(state.roundTimer);
             roundTimerBar.style.animationPlayState = 'paused';
-            stopAudioLoop(); // 'new Audio' sesini durdur
+            stopAudioLoop(); 
             processAnswers();
         }
 
-        // >>> DEĞİŞİKLİK: Doğru/Yanlış sesleri Web Audio API ile çalınıyor <<<
         function processAnswers() {
-            stopAudioLoop(); // 'new Audio' sesini durdur
+            stopAudioLoop(); 
             clearTimeout(state.roundTimer);
             if (state.isMatchOver || !state.questions[state.currentRound - 1]) return;
 
@@ -819,16 +777,14 @@
             const p1Correct = (p1Answer === correctId);
 
             const p1Choice = (p1Answer !== null) ? grid1.querySelector(`.image-container[data-id='${p1Answer}']`) : null;
-            const allCorrectContainers = document.querySelectorAll(`.image-container[data-id='${correctId}']`);
+            
+            const allCorrectContainers = document.querySelectorAll(`#image-grid-1 .image-container[data-id='${correctId}']`);
 
             allCorrectContainers.forEach(c => { c.classList.remove('selected'); c.classList.add('correct'); });
 
             let anyCorrect = false;
 
             if (p1Correct) {
-                // Puan 12.5
-                state.scores.player1 += 12.5;
-                if (p1Choice) animateScoreBox(p1Choice, 'player1', 12.5);
                 anyCorrect = true;
                 if (currentDot) currentDot.classList.add('correct'); 
             } else { 
@@ -838,9 +794,6 @@
                 if (currentDot) currentDot.classList.add('incorrect'); 
             }
 
-            updateScores();
-
-            // Web Audio API ile çal
             if (anyCorrect) playSound('correct'); else playSound('incorrect');
 
             grid1.classList.add('locked');
@@ -849,59 +802,17 @@
                 if (state.currentRound >= state.totalRounds && !state.isMatchOver) {
                     endMatch();
                 } else if (!state.isMatchOver) {
-                    nextRoundButton.style.display = 'flex';
+                    nextRoundButton.disabled = false;
                 }
-            }, 3200);
+            }, 1000);
         }
 
         function handleTimeout() {
             if (state.isAnswered || state.isMatchOver) return;
             state.isAnswered = true;
             roundTimerBar.style.animationPlayState = 'paused';
-            stopAudioLoop(); // 'new Audio' sesini durdur
+            stopAudioLoop(); 
             processAnswers();
-        }
-
-        function animateScoreBox(sourceElement, player, points) {
-            if (!sourceElement) return;
-            const burst = document.createElement('div');
-            burst.className = 'score-burst';
-            burst.textContent = `+${points}`;
-            gameContainer.appendChild(burst);
-
-            const startRect = sourceElement.getBoundingClientRect();
-            burst.style.left = `${startRect.left + startRect.width / 2}px`;
-            burst.style.top  = `${startRect.top + startRect.height / 2}px`;
-
-            burst.animate([
-                { transform: 'translate(-50%, -50%) scale(0.98)', opacity: 1 },
-                { transform: 'translate(-50%, calc(-50% - 180px)) scale(0.95)', opacity: 0 }
-            ], { duration: 3000, easing: 'cubic-bezier(.2,.8,.2,1)' });
-
-            setTimeout(() => burst.remove(), 3000);
-        }
-
-        function animateSpeedBonusBox(sourceElement, player, points) {
-            if (!sourceElement) return;
-            const bonus = document.createElement('div');
-            bonus.className = 'speed-bonus-burst';
-            bonus.innerHTML = `<span class="lightning">⚡</span><span>+${points}</span>`;
-            gameContainer.appendChild(bonus);
-
-            const startRect = sourceElement.getBoundingClientRect();
-            bonus.style.left = `${startRect.left + startRect.width / 2}px`;
-            bonus.style.top  = `${startRect.top + startRect.height / 2}px`;
-
-            bonus.animate([
-                { transform: 'translate(-50%, -50%) scale(0.98)', opacity: 1 },
-                { transform: 'translate(-50%, calc(-50% - 200px)) scale(0.92)', opacity: 0.05 }
-            ], { duration: 2600, easing: 'cubic-bezier(.2,.8,.2,1)' });
-
-            setTimeout(() => bonus.remove(), 2600);
-        }
-
-        function updateScores() {
-            score1Display.textContent = state.scores.player1;
         }
 
         function endMatch() {
@@ -909,18 +820,13 @@
             state.isMatchOver = true;
             stopAudioLoop(); clearTimeout(state.roundTimer);
 
-            winnerDisplay.textContent = `نَتيجَتُك: ${state.scores.player1}`; // "Puanın: X"
-            winnerDisplay.style.color = 'var(--dark-text)';
-            celebrationP1.classList.add('show');
-            
-            winnerDisplay.style.display = 'block';
-
             overlay.classList.add('visible');
             overlay.classList.remove('transparent-bg');
             countdownDisplay.style.display = 'none';
             resetButton.style.display = 'block';
 
             audioButton.disabled = true;
+            nextRoundButton.disabled = true;
             resetRound();
         }
 
@@ -932,25 +838,29 @@
             document.querySelectorAll('.progress-dot').forEach(dot => {
                 dot.classList.remove('correct', 'incorrect');
             });
-
-            celebrationP1.classList.remove('show');
         }
 
+        // --- OYUNU BAŞLATMA ---
+
         async function runIntroAnimation() {
-            // Hibrit yükleyiciyi çalıştır
+             if (audioContext.state === 'suspended') {
+                 audioContext.resume().catch(() => {});
+             }
+
+            // 'loadingIndicator' hatasını önlemek için bekle
             await Promise.all([preloadImages(), preloadAudio()]);
             
             loadingIndicator.classList.add('hidden');
             overlay.classList.add('visible', 'transparent-bg');
 
             setTimeout(() => { gameHeader.classList.add('visible'); }, 600);
-            setTimeout(() => { allHuds.forEach(hud => hud.classList.add('visible')); }, 1200);
             
-            setTimeout(() => { allGrids.forEach(grid => grid.classList.add('highlight')); }, 1800);
-            setTimeout(() => { centerControls.classList.add('visible'); }, 2400);
-            setTimeout(() => { allGrids.forEach(grid => grid.classList.remove('highlight')); }, 3000);
+            setTimeout(() => { allGrids.classList.add('highlight'); }, 1200);
+            setTimeout(() => { centerControls.classList.add('visible'); }, 1800);
+            setTimeout(() => { allGrids.classList.remove('highlight'); }, 2400);
         }
 
+        // Event Listeners
         startButton.addEventListener('click', playInstructionAndStart);
         startCountdownButton.addEventListener('click', startCountdownAndGame);
         resetButton.addEventListener('click', resetForNewGame);
@@ -962,7 +872,7 @@
 
         nextRoundButton.addEventListener('click', () => {
             if (state.isMatchOver) return;
-            nextRoundButton.style.display = 'none';
+            nextRoundButton.disabled = true;
             nextRound();
             if (!state.isMatchOver && state.currentRound <= state.totalRounds) toggleAudio();
         });
