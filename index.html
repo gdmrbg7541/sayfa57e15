@@ -323,7 +323,6 @@
         const audioBuffers = {};
         let currentAudio = new Audio(); 
 
-        // >>> DEĞİŞİKLİK: 'instruction' satırı kaldırıldı <<<
         const soundUrls = {
             // 'instruction' sesi kaldırıldı.
         };
@@ -478,9 +477,12 @@
             const promises = [];
 
             // 1. Sinüs dalgası olarak üretilen sesler
-            promises.push(createTone('correct', 880, 0.3, 'sine')); 
-            promises.push(createTone('incorrect', 220, 0.5, 'sine'));
-            promises.push(createTone('click', 1500, 0.05, 'sine')); 
+            // >>> DEĞİŞİKLİK: 'createTone' çağrıları, otomatik oynatma (autoplay)
+            // politikası sorunlarını (donma) önlemek için buradan kaldırıldı.
+            // Bu sesler artık ilk kullanıcı tıklamasında ('showReadyPrompt') üretilecek.
+            // promises.push(createTone('correct', 880, 0.3, 'sine')); 
+            // promises.push(createTone('incorrect', 220, 0.5, 'sine'));
+            // promises.push(createTone('click', 1500, 0.05, 'sine')); 
 
             // 2. Harici (ve 'Live Server' gerektiren) sesler
             // 'soundUrls' artık boş olduğu için bu döngü çalışmayacak (bu istenen bir durum)
@@ -527,14 +529,27 @@
             toggleAudio();
         }
 
-        // >>> DEĞİŞİKLİK: 'playInstructionAndStart' fonksiyonu SİLİNDİ <<<
-        
-        // >>> DEĞİŞİKLİK: 'startButton' tıklandığında sesi çalmak yerine
-        // doğrudan "Hazır mısın?" ekranını gösteren yeni fonksiyon eklendi.
-        function showReadyPrompt() {
+        // >>> DEĞİŞİKLİK: 'showReadyPrompt' fonksiyonu, 'async' yapıldı ve
+        // 'createTone' çağrıları 'preloadAudio'dan buraya taşındı.
+        // Bu, tarayıcının ses üretme işlemini engellemesini önler.
+        async function showReadyPrompt() {
             if (audioContext.state === 'suspended') {
-                audioContext.resume();
+                await audioContext.resume(); // 'await' kullan
             }
+            
+            // >>> EKLENEN BÖLÜM: Efekt seslerini ilk tıklamada üret
+            try {
+                // 'preloadAudio'dan sildiğimiz satırları buraya taşıdık
+                await Promise.all([
+                    createTone('correct', 880, 0.3, 'sine'),
+                    createTone('incorrect', 220, 0.5, 'sine'),
+                    createTone('click', 1500, 0.05, 'sine')
+                ]);
+            } catch (e) {
+                console.error("Efekt sesleri üretilemedi:", e);
+            }
+            // <<< EKLENEN BÖLÜM SONU
+
             startButton.style.display = 'none';
             if (countdownDisplay) countdownDisplay.style.display = 'none';
             if (playerSelectPrompt) playerSelectPrompt.style.display = 'flex';
@@ -842,6 +857,7 @@
              }
 
             // 'loadingIndicator' hatasını önlemek için bekle
+            // 'preloadAudio' artık 'createTone' içermediği için donmayacak
             await Promise.all([preloadImages(), preloadAudio()]);
             
             loadingIndicator.classList.add('hidden');
@@ -855,7 +871,7 @@
         }
 
         // Event Listeners
-        // >>> DEĞİŞİKLİK: Event listener, yeni 'showReadyPrompt' fonksiyonunu çağıracak şekilde güncellendi <<<
+        // 'startButton' tıklandığında artık 'showReadyPrompt' çağrılıyor
         startButton.addEventListener('click', showReadyPrompt);
         startCountdownButton.addEventListener('click', startCountdownAndGame);
         resetButton.addEventListener('click', resetForNewGame);
