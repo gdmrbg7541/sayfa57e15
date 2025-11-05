@@ -29,10 +29,16 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(255, 255, 255, 0.95);
             display: flex; justify-content: center; align-items: center;
-            font-size: 2rem; color: var(--dark-text);
+            font-size: 1.5rem; color: var(--dark-text); 
             z-index: 200; opacity: 1; transition: opacity 0.5s ease-out;
+            padding: 20px; text-align: center; 
+        }
+        #loading-indicator.initial-hide {
+            opacity: 0;
+            pointer-events: none;
         }
         #loading-indicator.hidden { opacity: 0; pointer-events: none; }
+
         #game-container { display: flex; width: 100%; height: 100%; position: relative; }
         #progress-bar { 
             position: absolute; top: 0; left: 0; width: 100%; 
@@ -68,7 +74,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            transition: background-color: 0.3s;
+            transition: background-color 0.3s;
             height: 100%;
             overflow-y: auto;
             position: relative;
@@ -183,6 +189,10 @@
         }
         #overlay.visible { opacity: 1; pointer-events: auto; }
         #overlay.transparent-bg { background-color: transparent; }
+        
+        #start-button {
+            display: none;
+        }
 
         .overlay-button {
             padding: 20px 40px; font-family: 'Noto Naskh Arabic', serif; font-size: 2.5rem; cursor: pointer; border: none; border-radius: 10px;
@@ -203,7 +213,6 @@
         #start-countdown-button:hover { transform: scale(1.1); }
 
         @keyframes zoom-fade { 0% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.8); opacity: 0.5; } }
-
 
         @media (max-width: 768px) {
             #progress-bar { height: 20px; }
@@ -234,7 +243,7 @@
     </style>
 </head>
 <body>
-    <div id="loading-indicator">...يتم التحميل</div>
+    <div id="loading-indicator" class="initial-hide">...يتم التحميل</div>
 
     <div id="game-container">
         
@@ -300,18 +309,13 @@
         const audioButton = document.getElementById('audio-button');
         const playIcon = audioButton.querySelector('.play-icon');
         const stopIcon = audioButton.querySelector('.stop-icon');
-
         const nextRoundButton = document.getElementById('next-round-button');
-
         const roundTimerBarContainer = document.getElementById('round-timer-bar-container');
         const roundTimerBar = document.getElementById('round-timer-bar');
-
         const gameHeader = document.getElementById('game-header');
         const centerControls = document.getElementById('center-controls');
-        
         const allGrids = document.getElementById('image-grid-1'); 
         const grid1 = document.getElementById('image-grid-1');
-
         const allImageContainers = document.querySelectorAll('#image-grid-1 .image-container');
         const gameContainer = document.getElementById('game-container');
         const winnerDisplay = document.getElementById('winner-display');
@@ -319,15 +323,11 @@
         const startCountdownButton = document.getElementById('start-countdown-button');
 
         // Audio Ayarları
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const audioBuffers = {};
-        let currentAudio = new Audio(); 
-
-        const soundUrls = {
-            // 'instruction' sesi kaldırıldı.
-        };
+        // >>> DEĞİŞİKLİK: Efektler için Web Audio, oyun sesleri için HTML5 Audio <<<
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)(); // Efektler için (createTone)
+        const audioBuffers = {}; // Sadece 'createTone' seslerini tutacak
+        let currentAudio = new Audio(); // HTML5 Audio, oyun sesleri (s1.mp3 vb) için
         
-        // Oyun Verisi
         const gameData = [
             { id: 1, image: "1.png", audio: "s1.mp3" },
             { id: 2, image: "2.png", audio: "s2.mp3" },
@@ -356,11 +356,10 @@
 
         // --- ÖN YÜKLEME FONKSİYONLARI ---
 
-        // >>> YENİ FONKSİYON: loadGameAudio <<<
-        // 'preloadAudio' içinden buraya taşındı.
-        // Sadece 'Başla' butonuna tıklandıktan sonra çağrılacak.
+        // >>> DEĞİŞİKLİK: loadGameAudio (HTML5 Audio kullanır) <<<
+        // 'file://' protokolünde çalışır.
         function loadGameAudio() {
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
                 let loadedCount = 0;
                 const totalAudio = gameData.length;
                 if (totalAudio === 0) return resolve();
@@ -368,159 +367,100 @@
                 const onAudioLoad = () => { 
                     loadedCount++; 
                     if (loadedCount === totalAudio) {
-                        console.log("Tüm .wav oyun sesleri yüklendi.");
+                        console.log("Tüm .mp3 oyun sesleri (HTML5) yüklendi.");
                         resolve(); 
                     }
                 };
 
-                console.log(".wav oyun sesleri yükleniyor...");
+                console.log(".mp3 oyun sesleri (HTML5) yükleniyor...");
                 gameData.forEach(item => {
                     const audio = new Audio();
                     audio.src = item.audio;
-                    // Bir ses dosyası yüklenemese bile (404 vb) diğerlerinin yüklenmesini
-                    // bitirmek için 'error' olayını da 'onAudioLoad'a bağla.
+                    // 'canplaythrough' olayı, sesin internetten tamamen yüklendiğini garanti eder
                     audio.addEventListener('canplaythrough', onAudioLoad, { once: true });
+                    // 'error' olayı, dosya bulunamazsa (404) veya yüklenemezse tetiklenir
                     audio.addEventListener('error', (e) => {
-                        console.warn(`.wav sesi ${item.audio} yüklenemedi, ama devam ediliyor.`, e);
-                        onAudioLoad(); 
+                        console.error(`HTML5 ses yüklenemedi: ${item.audio}`, e);
+                        reject(new Error(`HTML5 Ses dosyası bulunamadı: ${item.audio}`));
                     }, { once: true }); 
                 });
             });
         }
 
-
+        // preloadImages (Değişiklik yok, 'file://' protokolünde çalışır)
         function preloadImages() {
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => { 
                 let loadedCount = 0;
                 const totalImages = gameData.length;
                 if (totalImages === 0) { resolve(); return; }
+                
                 gameData.forEach(item => {
                     const img = new Image();
                     img.src = item.image;
-                    img.onload = img.onerror = () => { loadedCount++; if (loadedCount === totalImages) resolve(); };
+                    img.onload = () => { 
+                        loadedCount++; 
+                        if (loadedCount === totalImages) {
+                            console.log("Tüm resimler yüklendi.");
+                            resolve(); 
+                        }
+                    };
+                    img.onerror = () => {
+                        console.error(`Resim yüklenemedi: ${item.image}`);
+                        reject(new Error(`Resim dosyası bulunamadı: ${item.image}`));
+                    };
                 });
             });
         }
 
-        async function loadAudio(key, url) {
-            // 'file://' hatasını önlemek için AudioContext'in hazır olduğundan emin ol
-            if (audioContext.state === 'suspended') {
-                await audioContext.resume();
-            }
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status} for ${url}`);
-                }
-                const arrayBuffer = await response.arrayBuffer();
-                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                audioBuffers[key] = audioBuffer;
-            } catch (error) {
-                console.error(`Web Audio API sesi yüklenemedi ${key} (${url}):`, error);
-            }
-        }
+        // >>> DEĞİŞİKLİK: loadAudio(key, url) fonksiyonu SİLİNDİ. <<<
+        // 'fetch' kullandığı için 'file://' üzerinde hataya neden oluyordu.
 
+        // playSound (Değişiklik yok, 'file://' protokolünde çalışır)
+        // Sadece 'createTone' ile üretilen efekt sesleri (click, correct) için kullanılır.
         function playSound(key, onEndedCallback = null) {
             if (audioContext.state === 'suspended') {
                 audioContext.resume(); 
             }
-
             if (!audioBuffers[key]) {
                 console.warn(`Ses buffer'ı bulunamadı: ${key}`);
                 if (onEndedCallback) onEndedCallback();
                 return null;
             }
-
-            if (audioContext.state !== 'running') {
-                console.warn(`AudioContext çalışmıyor. Kullanıcı etkileşimi bekleniyor.`);
-                 audioContext.resume().then(() => {
-                    if (audioBuffers[key]) {
-                         const sourceRetry = audioContext.createBufferSource();
-                        sourceRetry.buffer = audioBuffers[key];
-                        sourceRetry.connect(audioContext.destination);
-                        if (onEndedCallback) sourceRetry.onended = onEndedCallback;
-                        sourceRetry.start(0);
-                        return sourceRetry;
-                    }
-                 }).catch(e => {
-                    console.warn(`AudioContext başlatılamadı:`, e);
-                    if (onEndedCallback) onEndedCallback();
-                 });
-                return null; 
-            }
             
             const source = audioContext.createBufferSource();
             source.buffer = audioBuffers[key];
             source.connect(audioContext.destination);
-            
-            if (onEndedCallback) {
-                source.onended = onEndedCallback;
-            }
+            if (onEndedCallback) { source.onended = onEndedCallback; }
             source.start(0);
             return source;
         }
-
+        
+        // createTone (Değişiklik yok, 'file://' protokolünde çalışır)
         function createTone(key, frequency, duration, type = 'sine') {
             return new Promise(async (resolve) => {
                 if (audioContext.state === 'suspended') {
-                    try {
-                        await audioContext.resume();
-                    } catch (e) {
-                        console.warn(`AudioContext ${key} için devam ettirilemedi:`, e);
-                        resolve(); 
-                        return;
-                    }
+                    try { await audioContext.resume(); } 
+                    catch (e) { console.warn(`AudioContext ${key} için devam ettirilemedi:`, e); resolve(); return; }
                 }
-                
                 const sampleRate = audioContext.sampleRate;
                 const frameCount = Math.floor(sampleRate * duration);
                 const buffer = audioContext.createBuffer(1, frameCount, sampleRate);
                 const data = buffer.getChannelData(0); 
-
                 let angle = 0;
                 const angleIncrement = (2 * Math.PI * frequency) / sampleRate;
-
                 for (let i = 0; i < frameCount; i++) {
                     let sample;
-                    
-                    if (type === 'square') {
-                         sample = Math.sin(angle) >= 0 ? 0.3 : -0.3; 
-                    } else if (type === 'sawtooth') {
-                        sample = (((angle / Math.PI) - 1) / 2) * 0.3;
-                        if (angle > Math.PI) angle -= 2 * Math.PI;
-                    } else {
-                        sample = Math.sin(angle) * 0.5; 
-                    }
-                    
+                    if (type === 'square') { sample = Math.sin(angle) >= 0 ? 0.3 : -0.3; }
+                    else if (type === 'sawtooth') { sample = (((angle / Math.PI) - 1) / 2) * 0.3; if (angle > Math.PI) angle -= 2 * Math.PI; }
+                    else { sample = Math.sin(angle) * 0.5; }
                     angle += angleIncrement;
                     if (angle > 2 * Math.PI) angle -= 2 * Math.PI;
-
                     const envelope = Math.pow(1.0 - (i / frameCount), 4); 
-                    
                     data[i] = sample * envelope; 
                 }
-                
                 audioBuffers[key] = buffer;
                 resolve();
             });
-        }
-
-
-        // >>> DEĞİŞİKLİK: preloadAudio <<<
-        // Bu fonksiyon 'runIntroAnimation'un donmasını engellemek için kasıtlı olarak boşaltıldı.
-        // Tüm ses yüklemeleri artık 'showReadyPrompt' içinde, kullanıcı tıkladıktan *sonra* yapılıyor.
-        function preloadAudio() {
-            // createTone sesleri (efektler) 'showReadyPrompt'a taşındı.
-            // gameData sesleri (.wav) 'loadGameAudio'ya (o da showReadyPrompt'a) taşındı.
-            // 'soundUrls' listesi boş.
-            // Bu fonksiyon artık sadece 'soundUrls' listesini yükler (o da boş).
-            // Bu yüzden temelde hiçbir şey yapmıyor, bu da 'await'in hemen tamamlanacağı anlamına gelir.
-            
-            const promises = [];
-            for (const [key, url] of Object.entries(soundUrls)) {
-                promises.push(loadAudio(key, url));
-            }
-            return Promise.all(promises); // Boş bir listeyi veya 'soundUrls' listesini döndürür
         }
 
         // --- OYUN AKIŞI FONKSİYONLARI ---
@@ -539,43 +479,53 @@
             toggleAudio();
         }
 
-        // >>> DEĞİŞİKLİK: showReadyPrompt <<<
-        // Artık 'loadGameAudio' (.wav) ve 'createTone' (efekt) fonksiyonlarını çağırıyor.
-        // Yükleme sırasında 'loadingIndicator'ı tekrar gösteriyor.
-        async function showReadyPrompt() {
+        // loadAllAssetsAndStart (Değişiklik yok, mantık aynı)
+        // HEM resimleri HEM sesleri (HTML5 Audio ile) yükler.
+        async function loadAllAssetsAndStart() {
             if (audioContext.state === 'suspended') {
-                await audioContext.resume(); // 'await' kullan
+                await audioContext.resume(); 
             }
             
-            // "Yükleniyor..." ekranını hızlıca göstermek için butonu gizle
             startButton.style.display = 'none';
-            loadingIndicator.classList.remove('hidden'); // Yükleniyor'u tekrar göster
-            loadingIndicator.textContent = "...Sesler yükleniyor..."; // Mesajı güncelle
+            loadingIndicator.classList.remove('hidden', 'initial-hide'); 
+            loadingIndicator.textContent = "...يتم التحميل..."; 
+            overlay.classList.remove('transparent-bg'); 
 
-            // >>> EKLENEN BÖLÜM: TÜM sesleri ilk tıklamada yükle
             try {
-                console.log("Efekt sesleri (createTone) üretiliyor...");
-                // 1. Efekt seslerini üret
-                await Promise.all([
+                console.log("Tüm varlıklar (resim + ses) yükleniyor...");
+                
+                // 1. Resimler
+                const imagePromise = preloadImages();
+
+                // 2. Efekt Sesleri (Web Audio)
+                const tonePromise = Promise.all([
                     createTone('correct', 880, 0.3, 'sine'),
                     createTone('incorrect', 220, 0.5, 'sine'),
                     createTone('click', 1500, 0.05, 'sine')
                 ]);
-                console.log("Efekt sesleri üretildi.");
+                
+                // 3. Oyun Sesleri (HTML5 Audio)
+                const gameAudioPromise = loadGameAudio(); 
 
-                // 2. .wav seslerini yükle (yeni fonksiyon)
-                await loadGameAudio(); 
+                // 4. HEPSİNİN bitmesini bekle
+                await Promise.all([imagePromise, tonePromise, gameAudioPromise]);
+                console.log("Tüm görseller ve sesler yüklendi.");
 
             } catch (e) {
-                console.error("Sesler yüklenirken hata oluştu:", e);
+                console.error("Varlıklar yüklenirken hata oluştu:", e);
+                loadingIndicator.textContent = `HATA: ${e.message}. Dosya adlarını (1.png, s1.mp3 vb) kontrol edin.`;
+                return; 
             }
-            // <<< EKLENEN BÖLÜM SONU
 
-            loadingIndicator.classList.add('hidden'); // Yükleme bitti, gizle
+            loadingIndicator.classList.add('hidden');
             
             if (countdownDisplay) countdownDisplay.style.display = 'none';
             if (playerSelectPrompt) playerSelectPrompt.style.display = 'flex';
-            if (overlay) overlay.classList.remove('transparent-bg');
+            
+            gameHeader.classList.add('visible');
+            allGrids.classList.add('highlight');
+            centerControls.classList.add('visible');
+            setTimeout(() => { allGrids.classList.remove('highlight'); }, 600);
         }
 
 
@@ -591,10 +541,8 @@
         function startMatch() {
             state.currentRound = 0;
             state.isMatchOver = false;
-
             state.questions = shuffleArray([...gameData]).slice(0, state.totalRounds)
                 .map(item => ({ ...item, duration: 30000 }));
-
             nextRound();
         }
 
@@ -607,16 +555,10 @@
 
             const currentQuestion = state.questions[state.currentRound];
             const correctId = currentQuestion.id;
-
-            // (Distractor logic)
-            const conflictGroupA = [1];
-            const conflictGroupB = [2, 3, 4];
+            const conflictGroupA = [1]; const conflictGroupB = [2, 3, 4];
             let bannedDistractorIds = []; 
-            if (conflictGroupA.includes(correctId)) {
-                bannedDistractorIds = conflictGroupB;
-            } else if (conflictGroupB.includes(correctId)) {
-                bannedDistractorIds = conflictGroupA;
-            }
+            if (conflictGroupA.includes(correctId)) { bannedDistractorIds = conflictGroupB; }
+            else if (conflictGroupB.includes(correctId)) { bannedDistractorIds = conflictGroupA; }
             const possibleDistractors = gameData.filter(item => {
                 if (item.id === correctId) return false;
                 if (bannedDistractorIds.includes(item.id)) return false;
@@ -624,8 +566,6 @@
             });
             const shuffledDistractors = shuffleArray(possibleDistractors);
             const finalDistractors = shuffledDistractors.slice(0, 3);
-            // (Distractor logic sonu)
-
             const options = shuffleArray([currentQuestion, ...finalDistractors]);
 
             allImageContainers.forEach((c, i) => {
@@ -645,23 +585,17 @@
             state.answerTimestamps = { player1: null };
             state.roundTimerStartTime = null;
             state.roundTimerRemaining = 0;
-
             clearTimeout(state.roundTimer);
             stopAudioLoop(); 
-
             nextRoundButton.disabled = true;
-
             audioButton.classList.remove('round-active');
-
             roundTimerBarContainer.style.display = 'none';
             roundTimerBar.classList.remove('active');
             roundTimerBar.style.animation = 'none';
             roundTimerBar.style.animationPlayState = 'running';
             void roundTimerBar.offsetWidth;
             roundTimerBar.style.animation = null;
-
             grid1.classList.remove('locked');
-
             allImageContainers.forEach(container => {
                 container.classList.remove('correct', 'incorrect', 'locked', 'selected');
                 const img = container.querySelector('img');
@@ -676,17 +610,13 @@
 
             if (!audioButton.classList.contains('round-active')) {
                 nextRoundButton.disabled = true;
-                
                 audioButton.classList.add('round-active', 'playing-sound', 'waiting');
-
                 const currentDuration = state.questions[state.currentRound - 1].duration;
                 state.roundTimerStartTime = Date.now();
                 state.roundTimerRemaining = currentDuration;
-
                 roundTimerBarContainer.style.display = 'block';
                 roundTimerBar.style.animation = `deplete-linear ${currentDuration / 1000}s linear forwards`;
                 roundTimerBar.classList.add('active');
-
                 state.roundTimer = setTimeout(handleTimeout, state.roundTimerRemaining);
 
                 setTimeout(() => {
@@ -695,14 +625,12 @@
                     startAudioLoop(true); 
                 }, 2000);
             } else {
-                if (audioButton.classList.contains('playing-sound')) {
-                    stopAudioLoop(); 
-                } else {
-                    startAudioLoop(false); 
-                }
+                if (audioButton.classList.contains('playing-sound')) { stopAudioLoop(); } 
+                else { startAudioLoop(false); }
             }
         }
 
+        // >>> DEĞİŞİKLİK: startAudioLoop (HTML5 Audio kullanır) <<<
         function startAudioLoop(isInitialCall) {
             if (state.isMatchOver || state.isAnswered || !audioButton.classList.contains('round-active') || state.currentRound > state.totalRounds || !state.questions[state.currentRound - 1]) return;
 
@@ -711,15 +639,14 @@
                 state.roundTimer = setTimeout(handleTimeout, state.roundTimerRemaining);
                 roundTimerBar.style.animationPlayState = 'running';
             }
-
             audioButton.classList.add('playing-sound');
             playIcon.style.display = 'none';
             stopIcon.style.display = 'block';
-
-            const audioSrc = state.questions[state.currentRound - 1].audio;
-            currentAudio.src = audioSrc;
-
-            currentAudio.onended = () => {
+            
+            const audioSrc = state.questions[state.currentRound - 1].audio; // örn: "s1.mp3"
+            currentAudio.src = audioSrc; // Global HTML5 Audio elementinin kaynağını ayarla
+            
+            const onAudioEnded = () => {
                 if (state.isMatchOver || state.isAnswered || !audioButton.classList.contains('playing-sound')) return;
                 audioButton.classList.add('waiting');
                 playIcon.style.display = 'block';
@@ -729,22 +656,24 @@
                     if (audioButton.classList.contains('playing-sound') && !state.isAnswered && !state.isMatchOver) {
                         playIcon.style.display = 'none';
                         stopIcon.style.display = 'block';
-                        currentAudio.play();
+                        currentAudio.play(); // Sesi tekrar oynat
                     }
                 }, 5000);
             };
-
-            currentAudio.play().catch(() => {});
+            currentAudio.onended = onAudioEnded;
+            currentAudio.play().catch(e => console.warn(`HTML5 Audio oynatılamadı: ${audioSrc}`, e));
         }
 
+        // >>> DEĞİŞİKLİK: stopAudioLoop (HTML5 Audio kullanır) <<<
         function stopAudioLoop() {
             clearTimeout(state.audioInterval);
             
+            // HTML5 Audio elementini durdur
             if (!currentAudio.paused) {
                 currentAudio.pause();
             }
             currentAudio.currentTime = 0;
-            currentAudio.onended = null;
+            currentAudio.onended = null; // 'onended' callback'ini manuel durdurmada engelle
 
             if (audioButton.classList.contains('round-active') && !state.isAnswered) {
                 clearTimeout(state.roundTimer);
@@ -754,7 +683,6 @@
                 }
                 roundTimerBar.style.animationPlayState = 'paused';
             }
-
             audioButton.classList.remove('playing-sound', 'waiting');
             playIcon.style.display = 'block';
             stopIcon.style.display = 'none';
@@ -768,31 +696,24 @@
 
         function handleAnswer(e) {
             const playerSection = e.currentTarget.closest('.player-section');
-            
             if (playerSection.id !== 'player1-section') return;
-            
             const player = 'player1';
-
-            if (!audioButton.classList.contains('round-active') ||
-                state.answers[player] !== null ||
-                state.isMatchOver ||
-                state.isAnswered) return;
-
-            playSound('click'); // Web Audio API tıklama sesi (üretilen)
-
+            if (!audioButton.classList.contains('round-active') || state.answers[player] !== null || state.isMatchOver || state.isAnswered) return;
+            
+            playSound('click'); // Efekt sesi (Web Audio)
+            
             const selectedContainer = e.currentTarget;
             const selectedId = parseInt(selectedContainer.dataset.id);
-
             state.answers[player] = selectedId;
             state.answerTimestamps[player] = Date.now();
-
             playerSection.querySelector('.image-grid').classList.add('locked');
             selectedContainer.classList.add('selected');
-
             state.isAnswered = true;
             clearTimeout(state.roundTimer);
             roundTimerBar.style.animationPlayState = 'paused';
-            stopAudioLoop(); 
+            
+            stopAudioLoop(); // Oyun sesi (HTML5 Audio)
+            
             processAnswers();
         }
 
@@ -800,21 +721,14 @@
             stopAudioLoop(); 
             clearTimeout(state.roundTimer);
             if (state.isMatchOver || !state.questions[state.currentRound - 1]) return;
-
             const currentDot = document.querySelectorAll('.progress-dot')[state.currentRound - 1];
-
             const correctId = state.questions[state.currentRound - 1].id;
             const p1Answer = state.answers.player1;
             const p1Correct = (p1Answer === correctId);
-
             const p1Choice = (p1Answer !== null) ? grid1.querySelector(`.image-container[data-id='${p1Answer}']`) : null;
-            
             const allCorrectContainers = document.querySelectorAll(`#image-grid-1 .image-container[data-id='${correctId}']`);
-
             allCorrectContainers.forEach(c => { c.classList.remove('selected'); c.classList.add('correct'); });
-
             let anyCorrect = false;
-
             if (p1Correct) {
                 anyCorrect = true;
                 if (currentDot) currentDot.classList.add('correct'); 
@@ -824,17 +738,13 @@
                 }
                 if (currentDot) currentDot.classList.add('incorrect'); 
             }
-
-            if (anyCorrect) playSound('correct'); else playSound('incorrect');
-
+            
+            if (anyCorrect) playSound('correct'); else playSound('incorrect'); // Efekt sesleri (Web Audio)
+            
             grid1.classList.add('locked');
-
             setTimeout(() => {
-                if (state.currentRound >= state.totalRounds && !state.isMatchOver) {
-                    endMatch();
-                } else if (!state.isMatchOver) {
-                    nextRoundButton.disabled = false;
-                }
+                if (state.currentRound >= state.totalRounds && !state.isMatchOver) { endMatch(); } 
+                else if (!state.isMatchOver) { nextRoundButton.disabled = false; }
             }, 1000);
         }
 
@@ -850,12 +760,10 @@
             if (state.isMatchOver) return;
             state.isMatchOver = true;
             stopAudioLoop(); clearTimeout(state.roundTimer);
-
             overlay.classList.add('visible');
             overlay.classList.remove('transparent-bg');
             countdownDisplay.style.display = 'none';
             resetButton.style.display = 'block';
-
             audioButton.disabled = true;
             nextRoundButton.disabled = true;
             resetRound();
@@ -865,7 +773,6 @@
             resetButton.style.display = 'none';
             playerSelectPrompt.style.display = 'flex';
             winnerDisplay.style.display = 'none';
-            
             document.querySelectorAll('.progress-dot').forEach(dot => {
                 dot.classList.remove('correct', 'incorrect');
             });
@@ -873,29 +780,18 @@
 
         // --- OYUNU BAŞLATMA ---
 
-        async function runIntroAnimation() {
+        // Sadece "Başla" butonunu gösterir.
+        function showStartButton() {
              if (audioContext.state === 'suspended') {
                  audioContext.resume().catch(() => {});
              }
-
-            // 'loadingIndicator' hatasını önlemek için bekle
-            // 'preloadAudio' artık 'createTone' VEYA '.wav' yüklemesi içermediği için donmayacak.
-            // Sadece resimler yüklenecek.
-            await Promise.all([preloadImages(), preloadAudio()]);
-            
             loadingIndicator.classList.add('hidden');
             overlay.classList.add('visible', 'transparent-bg');
-
-            setTimeout(() => { gameHeader.classList.add('visible'); }, 600);
-            
-            setTimeout(() => { allGrids.classList.add('highlight'); }, 1200);
-            setTimeout(() => { centerControls.classList.add('visible'); }, 1800);
-            setTimeout(() => { allGrids.classList.remove('highlight'); }, 2400);
+            startButton.style.display = 'block';
         }
 
         // Event Listeners
-        // 'startButton' tıklandığında artık 'showReadyPrompt' çağrılıyor
-        startButton.addEventListener('click', showReadyPrompt);
+        startButton.addEventListener('click', loadAllAssetsAndStart);
         startCountdownButton.addEventListener('click', startCountdownAndGame);
         resetButton.addEventListener('click', resetForNewGame);
         audioButton.addEventListener('click', toggleAudio);
@@ -911,7 +807,7 @@
             if (!state.isMatchOver && state.currentRound <= state.totalRounds) toggleAudio();
         });
 
-        runIntroAnimation();
+        showStartButton();
     </script>
 </body>
 </html>
