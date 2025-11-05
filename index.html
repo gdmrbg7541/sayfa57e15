@@ -356,6 +356,39 @@
 
         // --- ÖN YÜKLEME FONKSİYONLARI ---
 
+        // >>> YENİ FONKSİYON: loadGameAudio <<<
+        // 'preloadAudio' içinden buraya taşındı.
+        // Sadece 'Başla' butonuna tıklandıktan sonra çağrılacak.
+        function loadGameAudio() {
+            return new Promise((resolve) => {
+                let loadedCount = 0;
+                const totalAudio = gameData.length;
+                if (totalAudio === 0) return resolve();
+                
+                const onAudioLoad = () => { 
+                    loadedCount++; 
+                    if (loadedCount === totalAudio) {
+                        console.log("Tüm .wav oyun sesleri yüklendi.");
+                        resolve(); 
+                    }
+                };
+
+                console.log(".wav oyun sesleri yükleniyor...");
+                gameData.forEach(item => {
+                    const audio = new Audio();
+                    audio.src = item.audio;
+                    // Bir ses dosyası yüklenemese bile (404 vb) diğerlerinin yüklenmesini
+                    // bitirmek için 'error' olayını da 'onAudioLoad'a bağla.
+                    audio.addEventListener('canplaythrough', onAudioLoad, { once: true });
+                    audio.addEventListener('error', (e) => {
+                        console.warn(`.wav sesi ${item.audio} yüklenemedi, ama devam ediliyor.`, e);
+                        onAudioLoad(); 
+                    }, { once: true }); 
+                });
+            });
+        }
+
+
         function preloadImages() {
             return new Promise((resolve) => {
                 let loadedCount = 0;
@@ -473,44 +506,21 @@
         }
 
 
+        // >>> DEĞİŞİKLİK: preloadAudio <<<
+        // Bu fonksiyon 'runIntroAnimation'un donmasını engellemek için kasıtlı olarak boşaltıldı.
+        // Tüm ses yüklemeleri artık 'showReadyPrompt' içinde, kullanıcı tıkladıktan *sonra* yapılıyor.
         function preloadAudio() {
+            // createTone sesleri (efektler) 'showReadyPrompt'a taşındı.
+            // gameData sesleri (.wav) 'loadGameAudio'ya (o da showReadyPrompt'a) taşındı.
+            // 'soundUrls' listesi boş.
+            // Bu fonksiyon artık sadece 'soundUrls' listesini yükler (o da boş).
+            // Bu yüzden temelde hiçbir şey yapmıyor, bu da 'await'in hemen tamamlanacağı anlamına gelir.
+            
             const promises = [];
-
-            // 1. Sinüs dalgası olarak üretilen sesler
-            // >>> DEĞİŞİKLİK: 'createTone' çağrıları, otomatik oynatma (autoplay)
-            // politikası sorunlarını (donma) önlemek için buradan kaldırıldı.
-            // Bu sesler artık ilk kullanıcı tıklamasında ('showReadyPrompt') üretilecek.
-            // promises.push(createTone('correct', 880, 0.3, 'sine')); 
-            // promises.push(createTone('incorrect', 220, 0.5, 'sine'));
-            // promises.push(createTone('click', 1500, 0.05, 'sine')); 
-
-            // 2. Harici (ve 'Live Server' gerektiren) sesler
-            // 'soundUrls' artık boş olduğu için bu döngü çalışmayacak (bu istenen bir durum)
             for (const [key, url] of Object.entries(soundUrls)) {
                 promises.push(loadAudio(key, url));
             }
-
-            // 3. 'new Audio' (Görsel) seslerini önbelleğe yükle
-            const gameAudioPromise = new Promise((resolve) => {
-                let loadedCount = 0;
-                const totalAudio = gameData.length;
-                if (totalAudio === 0) return resolve();
-                
-                const onAudioLoad = () => { 
-                    loadedCount++; 
-                    if (loadedCount === totalAudio) resolve(); 
-                };
-
-                gameData.forEach(item => {
-                    const audio = new Audio();
-                    audio.src = item.audio;
-                    audio.addEventListener('canplaythrough', onAudioLoad, { once: true });
-                    audio.addEventListener('error', onAudioLoad, { once: true }); 
-                });
-            });
-            promises.push(gameAudioPromise);
-
-            return Promise.all(promises);
+            return Promise.all(promises); // Boş bir listeyi veya 'soundUrls' listesini döndürür
         }
 
         // --- OYUN AKIŞI FONKSİYONLARI ---
@@ -529,28 +539,40 @@
             toggleAudio();
         }
 
-        // >>> DEĞİŞİKLİK: 'showReadyPrompt' fonksiyonu, 'async' yapıldı ve
-        // 'createTone' çağrıları 'preloadAudio'dan buraya taşındı.
-        // Bu, tarayıcının ses üretme işlemini engellemesini önler.
+        // >>> DEĞİŞİKLİK: showReadyPrompt <<<
+        // Artık 'loadGameAudio' (.wav) ve 'createTone' (efekt) fonksiyonlarını çağırıyor.
+        // Yükleme sırasında 'loadingIndicator'ı tekrar gösteriyor.
         async function showReadyPrompt() {
             if (audioContext.state === 'suspended') {
                 await audioContext.resume(); // 'await' kullan
             }
             
-            // >>> EKLENEN BÖLÜM: Efekt seslerini ilk tıklamada üret
+            // "Yükleniyor..." ekranını hızlıca göstermek için butonu gizle
+            startButton.style.display = 'none';
+            loadingIndicator.classList.remove('hidden'); // Yükleniyor'u tekrar göster
+            loadingIndicator.textContent = "...Sesler yükleniyor..."; // Mesajı güncelle
+
+            // >>> EKLENEN BÖLÜM: TÜM sesleri ilk tıklamada yükle
             try {
-                // 'preloadAudio'dan sildiğimiz satırları buraya taşıdık
+                console.log("Efekt sesleri (createTone) üretiliyor...");
+                // 1. Efekt seslerini üret
                 await Promise.all([
                     createTone('correct', 880, 0.3, 'sine'),
                     createTone('incorrect', 220, 0.5, 'sine'),
                     createTone('click', 1500, 0.05, 'sine')
                 ]);
+                console.log("Efekt sesleri üretildi.");
+
+                // 2. .wav seslerini yükle (yeni fonksiyon)
+                await loadGameAudio(); 
+
             } catch (e) {
-                console.error("Efekt sesleri üretilemedi:", e);
+                console.error("Sesler yüklenirken hata oluştu:", e);
             }
             // <<< EKLENEN BÖLÜM SONU
 
-            startButton.style.display = 'none';
+            loadingIndicator.classList.add('hidden'); // Yükleme bitti, gizle
+            
             if (countdownDisplay) countdownDisplay.style.display = 'none';
             if (playerSelectPrompt) playerSelectPrompt.style.display = 'flex';
             if (overlay) overlay.classList.remove('transparent-bg');
@@ -857,7 +879,8 @@
              }
 
             // 'loadingIndicator' hatasını önlemek için bekle
-            // 'preloadAudio' artık 'createTone' içermediği için donmayacak
+            // 'preloadAudio' artık 'createTone' VEYA '.wav' yüklemesi içermediği için donmayacak.
+            // Sadece resimler yüklenecek.
             await Promise.all([preloadImages(), preloadAudio()]);
             
             loadingIndicator.classList.add('hidden');
