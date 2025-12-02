@@ -40,45 +40,77 @@
         #loading-indicator.hidden { opacity: 0; pointer-events: none; }
 
         #game-container { display: flex; width: 100%; height: 100%; position: relative; }
-        #progress-bar { 
-            position: absolute; top: 0; left: 0; width: 100%; 
-            display: flex; gap: 0; justify-content: center; align-items: center; 
+       #progress-bar { 
+            position: absolute; 
+            top: 15px; 
+            left: 0; 
+            width: 100%; 
+            display: flex; 
+            gap: 30px; /* Kutucuklar arası boşluk */
+            justify-content: center; 
+            align-items: center; 
             height: 30px; 
             z-index: 51;
+            padding: 0 30px; /* DEĞİŞTİ: Sağ ve soldan 30px boşluk bırakıldı */
         }
         .progress-dot { 
             flex: 1; 
             height: 100%; 
             background-color: #ccc; 
-            border-radius: 0; 
-            transition: background-color 0.3s;
-            border-left: 1px solid #f4f4f4; 
+            border-radius: 5px; /* DEĞİŞTİ: Ayrık oldukları için köşeler hafif yuvarlatıldı */
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            position: relative; 
+            /* border-left satırı silindi, artık gerek yok */
         }
         .progress-dot:first-child { border-left: none; }
-        .progress-dot.correct { background-color: var(--correct-color); }
-        .progress-dot.incorrect { background-color: var(--incorrect-color); }
+        .progress-dot.correct { 
+            background-color: var(--correct-color);
+            transform: scale(1.15); /* BURASI DEĞİŞTİ: 1.35 yerine 1.15 yapıldı (Daha az büyüme) */
+            z-index: 20; 
+            box-shadow: 0 0 15px var(--correct-color); 
+            border: 2px solid white; 
+            border-radius: 4px; 
+        }
+      .progress-dot.incorrect { 
+            background-color: var(--incorrect-color);
+            transform: scale(1.15); /* BURASI DEĞİŞTİ: 1.35 yerine 1.15 yapıldı (Daha az büyüme) */
+            z-index: 20; 
+            box-shadow: 0 0 15px var(--incorrect-color); 
+            border: 2px solid white; 
+            border-radius: 4px;
+        }
         
         #game-header {
-            position: absolute; top: 30px; 
-            left: 0; width: 100%; padding: 15px; background: #fff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; z-index: 50; direction: rtl;
-            opacity: 0; transform: translateY(-30px); transition: opacity 0.6s ease, transform 0.6s ease;
+            position: absolute; 
+            top: 60px; /* DEĞİŞTİ: 30px'ten 60px'e çekildi (Çubuğun altında kalmasın diye) */
+            left: 0; 
+            width: 100%; 
+            padding: 15px; 
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            text-align: center; 
+            z-index: 50; 
+            direction: rtl;
+            opacity: 0; 
+            transform: translateY(-30px); 
+            transition: opacity 0.6s ease, transform 0.6s ease;
         }
         #game-header.visible { opacity: 1; transform: translateY(0); }
         #game-header h1 { font-family: 'Noto Naskh Arabic', serif; font-size: 2.8rem; margin: 0; color: var(--dark-text); }
 
-        .player-section {
-            flex: 1;
-            padding: 160px 5px 120px 5px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            transition: background-color 0.3s;
-            height: 100%;
-            overflow-y: auto;
-            position: relative;
-        }
+      .player-section {
+    flex: 1;
+    /* Üst ve alt boşlukları azalttık ki ortalamaya yer kalsın */
+    padding: 60px 10px; 
+    display: flex;
+    flex-direction: column;
+    /* İçeriği dikey eksende merkeze çeker */
+    justify-content: center; 
+    align-items: center;
+    height: 100%;
+    overflow-y: hidden;
+    position: relative;
+}
         #player1-section { background-color: rgba(74, 144, 226, 0.1); }
         
         #center-controls {
@@ -164,18 +196,48 @@
             opacity: 0.5; 
         }
         
-        .image-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; 
-            max-width: 840px; 
-            margin: 0 auto;
-            border: 5px solid transparent; border-radius: 20px; padding: 5px; transition: all 0.6s ease;
+       .image-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Masaüstünde 4 sütun */
+            gap: 20px; /* Görseller arası boşluk biraz artırıldı */
+            width: 95%; /* Genişlik ekranın %95'ini kaplasın */
+            max-width: 1300px; /* DEĞİŞTİ: 1000px'den 1300px'e çıkarıldı (Daha büyük görsel) */
+            margin: auto;
+            border: 5px solid transparent;
+            border-radius: 20px;
+            padding: 10px;
+            transition: all 0.6s ease;
         }
         .image-grid.highlight { border-color: var(--player1-bg); box-shadow: 0 0 20px var(--player1-bg); }
         .image-grid.locked .image-container { pointer-events: none; opacity: 0.7; }
 
-        .image-container {
-            width: 100%; padding-top: 100%; position: relative; border: 5px solid transparent; border-radius: 15px; overflow: hidden;
-            background-color: #e0e0e0; transition: transform 0.2s, border-color 0.2s, opacity 0.2s; cursor: pointer;
+       .image-container {
+            width: 100%; 
+            padding-top: 100%; 
+            position: relative; 
+            border: 5px solid transparent; 
+            border-radius: 15px; 
+            overflow: hidden;
+            background-color: #e0e0e0; 
+            /* Geçişleri yumuşatır */
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s, border-color 0.2s; 
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Hafif gölge */
+        }
+
+        /* --- YENİ EKLENEN KISIM: HOVER EFEKTİ --- */
+        /* Sadece oyun kilitli değilken (cevap verilmemişken) çalışır */
+        .image-grid:not(.locked) .image-container:hover {
+            transform: translateY(-5px) scale(1.03); /* Yukarı kalkma ve büyüme */
+            box-shadow: 0 15px 25px rgba(0,0,0,0.2); /* Gölge derinleşir (havada duruyor hissi) */
+            border-color: #bbb; /* Çerçeve hafif grileşir */
+            z-index: 10;
+        }
+
+        /* Tıklama anı (Basılma hissi) */
+        .image-grid:not(.locked) .image-container:active {
+            transform: translateY(0) scale(0.95); /* Aşağı inme ve küçülme */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Gölge azalır */
         }
         .image-grid.locked .image-container.selected { border-color: var(--selected-color); opacity: 1; transform: scale(0.95); }
         .image-container img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -215,8 +277,8 @@
         @keyframes zoom-fade { 0% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.8); opacity: 0.5; } }
 
         @media (max-width: 768px) {
-            #progress-bar { height: 20px; }
-            #game-header { top: 20px; }
+            #progress-bar { height: 20px; top: 10px; } /* Mobilde biraz daha az boşluk */
+            #game-header { top: 45px; } /* Başlık buna göre ayarlandı */
             #center-controls { bottom: 20px; right: 20px; }
             #audio-button { width: 70px; height: 70px; }
             #next-round-button { width: 70px; height: 70px; }
@@ -228,9 +290,10 @@
             #player-select-text { font-size: 2.5rem; }
             #start-countdown-button { font-size: 5rem; }
         }
+
         @media (max-width: 480px) {
-            #progress-bar { height: 15px; }
-            #game-header { top: 15px; }
+            #progress-bar { height: 15px; top: 10px; }
+            #game-header { top: 40px; } /* Mobilde başlık konumu */
             .player-section { padding: 130px 5px 100px 5px; } 
             #center-controls { bottom: 10px; right: 10px; gap: 5px;}
             #audio-button { width: 60px; height: 60px; }
@@ -240,6 +303,37 @@
             #game-header h1 { font-size: 1.8rem; } 
             .progress-dot { border-radius: 0; }
         }
+/* Kırmızı Dalga Animasyonu */
+@keyframes red-wave-animation {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+        border-color: rgba(255, 0, 0, 0.8);
+    }
+    100% {
+        transform: scale(1.6);
+        opacity: 0;
+        border-color: rgba(255, 0, 0, 0);
+    }
+}
+
+/* JavaScript ile bu sınıf eklendiğinde animasyon çalışacak */
+#next-round-button.pulse-active::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 50%;
+    border: 4px solid red; /* Kırmızı halka */
+    z-index: -1; /* Butonun arkasında dursun */
+    animation: red-wave-animation 1.5s infinite ease-out;
+}
+
+/* Butonun z-index ayarı ve taşmayı göstermesi için */
+#next-round-button {
+    overflow: visible; /* Dalganın buton dışına taşmasına izin ver */
+    /* Mevcut kodunda position relative yoksa ekle (var görünüyor ama garanti olsun) */
+    position: relative; 
+}
     </style>
 </head>
 <body>
@@ -581,6 +675,7 @@
 
         function resetRound() {
             state.isAnswered = false;
+            nextRoundButton.classList.remove('pulse-active');
             state.answers = { player1: null };
             state.answerTimestamps = { player1: null };
             state.roundTimerStartTime = null;
@@ -718,6 +813,10 @@
         }
 
         function processAnswers() {
+if (!state.isMatchOver) { 
+        nextRoundButton.disabled = false; 
+        nextRoundButton.classList.add('pulse-active'); // <--- YENİ EKLENECEK SATIR
+    }
             stopAudioLoop(); 
             clearTimeout(state.roundTimer);
             if (state.isMatchOver || !state.questions[state.currentRound - 1]) return;
