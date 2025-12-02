@@ -349,7 +349,6 @@
             <div class="progress-dot"></div>
             <div class="progress-dot"></div>
             <div class="progress-dot"></div>
-            <div class="progress-dot"></div>
         </div>
 
         <div id="game-header">
@@ -506,9 +505,6 @@
             });
         }
 
-        // >>> DEĞİŞİKLİK: loadAudio(key, url) fonksiyonu SİLİNDİ. <<<
-        // 'fetch' kullandığı için 'file://' üzerinde hataya neden oluyordu.
-
         // playSound (Değişiklik yok, 'file://' protokolünde çalışır)
         // Sadece 'createTone' ile üretilen efekt sesleri (click, correct) için kullanılır.
         function playSound(key, onEndedCallback = null) {
@@ -635,8 +631,18 @@
         function startMatch() {
             state.currentRound = 0;
             state.isMatchOver = false;
-            state.questions = shuffleArray([...gameData]).slice(0, state.totalRounds)
-                .map(item => ({ ...item, duration: 30000 }));
+
+            // --- DEĞİŞİKLİK BURADA BAŞLIYOR ---
+            // 1. ID'si 1 olanı soru listesinden filtreleyerek çıkarıyoruz.
+            const questionPool = gameData.filter(item => item.id !== 1);
+
+            // 2. Soru sayısı 8'den 7'ye düştüğü için tur sayısını güncelliyoruz.
+            state.totalRounds = questionPool.length;
+
+            // 3. Soruları karıştırıp hazırlıyoruz
+            state.questions = shuffleArray([...questionPool]).map(item => ({ ...item, duration: 30000 }));
+            // --- DEĞİŞİKLİK BURADA BİTİYOR ---
+
             nextRound();
         }
 
@@ -813,10 +819,10 @@
         }
 
         function processAnswers() {
-if (!state.isMatchOver) { 
-        nextRoundButton.disabled = false; 
-        nextRoundButton.classList.add('pulse-active'); // <--- YENİ EKLENECEK SATIR
-    }
+            if (!state.isMatchOver) { 
+                nextRoundButton.disabled = false; 
+                nextRoundButton.classList.add('pulse-active'); 
+            }
             stopAudioLoop(); 
             clearTimeout(state.roundTimer);
             if (state.isMatchOver || !state.questions[state.currentRound - 1]) return;
