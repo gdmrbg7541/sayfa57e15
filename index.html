@@ -334,7 +334,6 @@
     /* Mevcut kodunda position relative yoksa ekle (var görünüyor ama garanti olsun) */
     position: relative; 
 }
-/* --- YENİ EKLENEN KISIM: İSTENEN MOBİL DÜZENLEMELER --- */
 
 /* Mobil Dikey (Telefonlar) - Maksimum 480px Genişlik */
 @media (max-width: 480px) and (orientation: portrait) {
@@ -343,46 +342,6 @@
         grid-template-columns: repeat(2, 1fr); 
         gap: 15px;
         max-width: 90%; 
-    }
-}
-
-/* Mobil Yatay (Tabletler, Büyük Telefonlar) - 481px'ten 768px'e kadar genişlik ve Yatay Yönelim */
-/* NOT: Eğer 480px'ten küçük cihazlar da yatay kullanılırsa bu kısım çalışmayacaktır. */
-/* Eğer tüm mobil yatay istenirse, sadece (orientation: landscape) kullanılabilir. */
-/* Mobil Yatay (Tabletler, Büyük Telefonlar) - 481px'ten 768px'e kadar genişlik ve Yatay Yönelim */
-
-@media (max-width: 768px) and (orientation: landscape) {
-    
-    /* İlerleme Çubuğu Daha İnce */
-    #progress-bar { 
-        height: 10px; 
-        top: 8px; 
-        gap: 10px;
-    }
-    
-    /* Yönerge (Başlık) Daha Küçük */
-    #game-header {
-        top: 30px; 
-        padding: 5px 5px; /* DEĞİŞTİ: Üst/alt padding azaltıldı */
-    }
-    #game-header h1 { 
-        font-size: 1.4rem; /* DEĞİŞTİ: Başlık metni daha da küçültüldü */
-    }
-
-    /* Görsel Alanının Dikeyde Daha Fazla Yer Kaplaması İçin Padding Azaltıldı */
-    .player-section { 
-        padding: 60px 5px 40px 5px; /* DEĞİŞTİ: Üst/Alt boşluklar azaltıldı (100px/60px'ten 80px/40px'e) */
-    }
-
-    /* Izgarayı biraz küçültelim */
-    .image-grid {
-        gap: 10px;
-        max-width: 1000px; 
-    }
-    
-    /* Kontrol butonlarını biraz yukarı çekelim */
-    #center-controls {
-        bottom: 20px; 
     }
 }
 
@@ -395,9 +354,60 @@
         max-width: 80%; /* Daha büyük ekranda biraz daha daraltıldı */
     }
 }
+
+/* --- YATAY KİLİT EKRANI ve ANİMASYON --- */
+
+#orientation-lock {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #333; /* Koyu arka plan */
+    color: white;
+    display: none; /* Varsayılan olarak gizli */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: 1.8rem;
+    font-family: 'Cairo', sans-serif;
+    z-index: 500; /* Her şeyin üstünde olmalı */
+}
+
+#lock-icon {
+    font-size: 8rem;
+    margin-bottom: 20px;
+    /* Cihaz çevirme hareketini taklit eden animasyon */
+    animation: rotate-hint-new 1.5s ease-in-out infinite; 
+}
+
+@keyframes rotate-hint-new {
+    /* Başlangıç: Cihaz yatay görünüyor (90 derece) */
+    0% { transform: rotate(90deg); opacity: 1; } 
+    /* Ortada: Dikey moda dönme hareketi (0 derece) */
+    50% { transform: rotate(0deg); opacity: 0.8; }
+    /* Son: Tekrar yatay görünüme dönme */
+    100% { transform: rotate(90deg); opacity: 1; }
+}
+
+/* KİLİT KURALI: Maksimum 768px genişlikte ve yatay yönelimde bu ekranı GÖSTER */
+@media (max-width: 768px) and (orientation: landscape) {
+    #orientation-lock {
+        display: flex; /* Yatay modda göster */
+    }
+    /* Ana oyun içeriğini tamamen gizle */
+    #game-container, #loading-indicator, #overlay {
+        display: none !important;
+    }
+}
     </style>
 </head>
 <body>
+    <div id="orientation-lock">
+        <div id="lock-icon">🔄</div>
+        
+    </div>
+    
     <div id="loading-indicator" class="initial-hide">...يتم التحميل</div>
 
     <div id="game-container">
