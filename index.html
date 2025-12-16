@@ -349,33 +349,40 @@
 /* Mobil Yatay (Tabletler, Büyük Telefonlar) - 481px'ten 768px'e kadar genişlik ve Yatay Yönelim */
 /* NOT: Eğer 480px'ten küçük cihazlar da yatay kullanılırsa bu kısım çalışmayacaktır. */
 /* Eğer tüm mobil yatay istenirse, sadece (orientation: landscape) kullanılabilir. */
+/* Mobil Yatay (Tabletler, Büyük Telefonlar) - 481px'ten 768px'e kadar genişlik ve Yatay Yönelim */
+
 @media (max-width: 768px) and (orientation: landscape) {
     
     /* İlerleme Çubuğu Daha İnce */
     #progress-bar { 
-        height: 15px; /* Varsayılan 30px veya mobilde 20px'ti. Daha da ince yapıldı. */
-        top: 8px; /* Konum ayarı */
-        gap: 15px;
+        height: 10px; 
+        top: 8px; 
+        gap: 10px;
     }
     
     /* Yönerge (Başlık) Daha Küçük */
     #game-header {
-        top: 35px; /* İnce çubuğa göre konum ayarlandı */
-        padding: 8px 15px; /* Daha az padding */
+        top: 30px; 
+        padding: 5px 5px; /* DEĞİŞTİ: Üst/alt padding azaltıldı */
     }
     #game-header h1 { 
-        font-size: 1.5rem; /* Varsayılan 2.8rem veya mobilde 2.0rem'di. Daha da küçük yapıldı. */
+        font-size: 1.4rem; /* DEĞİŞTİ: Başlık metni daha da küçültüldü */
     }
 
     /* Görsel Alanının Dikeyde Daha Fazla Yer Kaplaması İçin Padding Azaltıldı */
     .player-section { 
-        padding: 100px 5px 60px 5px; /* Üst/Alt boşluk azaltıldı */
+        padding: 60px 5px 40px 5px; /* DEĞİŞTİ: Üst/Alt boşluklar azaltıldı (100px/60px'ten 80px/40px'e) */
     }
 
     /* Izgarayı biraz küçültelim */
     .image-grid {
         gap: 10px;
-        max-width: 1000px; /* Varsayılan 1300px'ti. Biraz küçültüldü. */
+        max-width: 1000px; 
+    }
+    
+    /* Kontrol butonlarını biraz yukarı çekelim */
+    #center-controls {
+        bottom: 20px; 
     }
 }
 
