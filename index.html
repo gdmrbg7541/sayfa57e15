@@ -334,6 +334,60 @@
     /* Mevcut kodunda position relative yoksa ekle (var görünüyor ama garanti olsun) */
     position: relative; 
 }
+/* --- YENİ EKLENEN KISIM: İSTENEN MOBİL DÜZENLEMELER --- */
+
+/* Mobil Dikey (Telefonlar) - Maksimum 480px Genişlik */
+@media (max-width: 480px) and (orientation: portrait) {
+    /* 2 Satır x 2 Sütun Görsel Izgara */
+    .image-grid {
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 15px;
+        max-width: 90%; 
+    }
+}
+
+/* Mobil Yatay (Tabletler, Büyük Telefonlar) - 481px'ten 768px'e kadar genişlik ve Yatay Yönelim */
+/* NOT: Eğer 480px'ten küçük cihazlar da yatay kullanılırsa bu kısım çalışmayacaktır. */
+/* Eğer tüm mobil yatay istenirse, sadece (orientation: landscape) kullanılabilir. */
+@media (max-width: 768px) and (orientation: landscape) {
+    
+    /* İlerleme Çubuğu Daha İnce */
+    #progress-bar { 
+        height: 15px; /* Varsayılan 30px veya mobilde 20px'ti. Daha da ince yapıldı. */
+        top: 8px; /* Konum ayarı */
+        gap: 15px;
+    }
+    
+    /* Yönerge (Başlık) Daha Küçük */
+    #game-header {
+        top: 35px; /* İnce çubuğa göre konum ayarlandı */
+        padding: 8px 15px; /* Daha az padding */
+    }
+    #game-header h1 { 
+        font-size: 1.5rem; /* Varsayılan 2.8rem veya mobilde 2.0rem'di. Daha da küçük yapıldı. */
+    }
+
+    /* Görsel Alanının Dikeyde Daha Fazla Yer Kaplaması İçin Padding Azaltıldı */
+    .player-section { 
+        padding: 100px 5px 60px 5px; /* Üst/Alt boşluk azaltıldı */
+    }
+
+    /* Izgarayı biraz küçültelim */
+    .image-grid {
+        gap: 10px;
+        max-width: 1000px; /* Varsayılan 1300px'ti. Biraz küçültüldü. */
+    }
+}
+
+/* Mobil Dikey (Tabletler) - 481px'ten 768px'e kadar genişlik ve Dikey Yönelim */
+@media (min-width: 481px) and (max-width: 768px) and (orientation: portrait) {
+    /* 2 Satır x 2 Sütun Görsel Izgara */
+    .image-grid {
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 20px;
+        max-width: 80%; /* Daha büyük ekranda biraz daha daraltıldı */
+    }
+}
     </style>
 </head>
 <body>
@@ -422,14 +476,14 @@
         let currentAudio = new Audio(); // HTML5 Audio, oyun sesleri (s1.mp3 vb) için
         
         const gameData = [
-            { id: 1, image: "1.png", audio: "s1.mp3" },
-            { id: 2, image: "2.png", audio: "s2.mp3" },
-            { id: 3, image: "3.png", audio: "s3.mp3" },
-            { id: 4, image: "4.png", audio: "s4.mp3" },
-            { id: 5, image: "5.png", audio: "s5.mp3" },
-            { id: 6, image: "6.png", audio: "s6.mp3" },
-            { id: 7, image: "7.png", audio: "s7.mp3" },
-            { id: 8, image: "8.png", audio: "s8.mp3" }
+            { id: 1, image: "1.jpeg", audio: "s1.mp3" },
+            { id: 2, image: "2.jpeg", audio: "s2.mp3" },
+            { id: 3, image: "3.jpeg", audio: "s3.mp3" },
+            { id: 4, image: "4.jpeg", audio: "s4.mp3" },
+            { id: 5, image: "5.jpeg", audio: "s5.mp3" },
+            { id: 6, image: "6.jpeg", audio: "s6.mp3" },
+            { id: 7, image: "7.jpeg", audio: "s7.mp3" },
+            { id: 8, image: "8.jpeg", audio: "s8.mp3" }
         ];
 
         // Oyun Durumu (State)
